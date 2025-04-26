@@ -1,12 +1,38 @@
-﻿services:
-  stockpile:
-    image: stockpile
+﻿version: '3.9'
+
+services:
+  InventoryDatabase:
+    image: mongo:latest
+    container_name: inventory_db
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: InventoryDatabase
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: secret
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "localhost:27017", "--quiet", "--eval", "db.runCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  stockpile-api:
     build:
       context: .
       dockerfile: Stockpile/Dockerfile
+    container_name: stockpile_api
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      DatabaseConfig__ConnectionString: mongodb://admin:secret@InventoryDatabase:27017/?authSource=admin
+      DatabaseConfig__DatabaseName: InventoryDatabase
+    depends_on:
+      InventoryDatabase:
+        condition: service_healthy
 
-  stockpile.dal:
-    image: stockpile.dal
-    build:
-      context: .
-      dockerfile: Stockpile.DAL/Dockerfile
+volumes:
+  mongo_data:

@@ -1,21 +1,19 @@
 ﻿FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
-USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
-EXPOSE 8081
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["Stockpile/Stockpile.csproj", "Stockpile/"]
+COPY ["Stockpile.DAL/Stockpile.DAL.csproj", "Stockpile.DAL/"]
+
 RUN dotnet restore "Stockpile/Stockpile.csproj"
 COPY . .
 WORKDIR "/src/Stockpile"
-RUN dotnet build "Stockpile.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "Stockpile.csproj" -c Release -o /app/build
 
 FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "Stockpile.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "Stockpile.csproj" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app

@@ -45,6 +45,7 @@ void RegisterServices()
     {
         var client = sp.GetRequiredService<IMongoClient>();
         var config = sp.GetRequiredService<IOptions<DatabaseConfig>>().Value;
+        Console.WriteLine($"Database Name: {config.DatabaseName}");
         return client.GetDatabase(config.DatabaseName);
     });
 
@@ -110,7 +111,5 @@ void SeedDatabase()
     using var scope = serviceProvider.CreateScope();
     var scopedProvider = scope.ServiceProvider;
     var db = scopedProvider.GetRequiredService<IMongoDatabase>();
-
-    // Run seeding or other startup tasks
     SeedData.Initialize(db);
 }
