@@ -6,7 +6,7 @@ namespace Stockpile.Contracts.Mappers;
 
 public static class UserProfileMapper
 {
-    public static UserProfileResponse Map(this UserProfile userProfile)
+    public static UserProfileResponse MapFrom(this UserProfile userProfile)
     {
         return new UserProfileResponse
         {
@@ -16,7 +16,7 @@ public static class UserProfileMapper
         };
     }
     
-    public static UserProfile Map(this UserProfileRequest userProfileRequest)
+    public static UserProfile MapTo(this UserProfileRequest userProfileRequest)
     {
         return new UserProfile
         {

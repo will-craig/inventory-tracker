@@ -6,11 +6,11 @@ namespace Stockpile.Contracts.Mappers;
 
 public static class InventoryItemMapper
 {
-    public static InventoryItem Map(this InventoryItemUpdateRequest request, string userId, string username)
+    public static InventoryItem MapTo(this InventoryItemRequest request, string id, string userId, string username)
     {
         return new InventoryItem
         {
-            Id = request.Id,
+            Id = id,
             Name = request.Name,
             Quantity = request.Quantity,
             Unit = request.Unit,
@@ -20,7 +20,7 @@ public static class InventoryItemMapper
         };
     }
 
-    public static InventoryItem Map(this InventoryItemCreateRequest request, string userId, string username)
+    public static InventoryItem MapTo(this InventoryItemRequest request, string userId, string username)
     {
         return new InventoryItem
         {
@@ -33,7 +33,7 @@ public static class InventoryItemMapper
         };
     }
     
-    public static InventoryItemResponse Map(this InventoryItem item)
+    public static InventoryItemResponse MapFrom(this InventoryItem item)
     {
         return new InventoryItemResponse
         {

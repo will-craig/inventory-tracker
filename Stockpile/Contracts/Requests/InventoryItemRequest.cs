@@ -3,7 +3,7 @@ using Stockpile.DAL.Models.Enums;
 
 namespace Stockpile.Contracts.Requests;
 
-public class InventoryItemCreateRequest
+public class InventoryItemRequest
 {
     public string Name { get; set; }
     public int Quantity { get; set; }
