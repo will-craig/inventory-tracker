@@ -1,0 +1,24 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stockpile", "Stockpile\Stockpile.csproj", "{EC5D9778-A503-41BA-91DC-3ECC9150EDD8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D2A74D45-F112-4915-AE6C-50B623EB4A5E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stockpile.DAL", "Stockpile.DAL\Stockpile.DAL.csproj", "{F90010E7-4995-498F-A95C-9F548CF3E654}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EC5D9778-A503-41BA-91DC-3ECC9150EDD8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC5D9778-A503-41BA-91DC-3ECC9150EDD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC5D9778-A503-41BA-91DC-3ECC9150EDD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC5D9778-A503-41BA-91DC-3ECC9150EDD8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F90010E7-4995-498F-A95C-9F548CF3E654}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F90010E7-4995-498F-A95C-9F548CF3E654}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F90010E7-4995-498F-A95C-9F548CF3E654}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F90010E7-4995-498F-A95C-9F548CF3E654}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

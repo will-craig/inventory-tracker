@@ -1,0 +1,28 @@
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+using Stockpile.DAL.Models.Enums;
+
+namespace Stockpile.DAL.Models;
+
+public class InventoryItem(string id) : CollectionBase(id)
+{
+    public InventoryItem(): this(ObjectId.GenerateNewId().ToString()) { }
+    
+    [BsonRequired]
+    public required string Name { get; set; }
+
+    [BsonDefaultValue(0)]
+    public float Quantity { get; set; }
+    
+    [BsonRepresentation(BsonType.String)]
+    public Unit Unit { get; set; } 
+    
+    [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
+    public DateTime? ExpiryDate { get; set; }
+    
+    [BsonRepresentation(BsonType.ObjectId)]
+    public required string UserId { get; set; }
+    
+    [BsonRequired]
+    public required string Username { get; set; }
+}

@@ -1,0 +1,12 @@
+﻿services:
+  stockpile:
+    image: stockpile
+    build:
+      context: .
+      dockerfile: Stockpile/Dockerfile
+
+  stockpile.dal:
+    image: stockpile.dal
+    build:
+      context: .
+      dockerfile: Stockpile.DAL/Dockerfile
