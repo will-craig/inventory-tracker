@@ -57,3 +57,4 @@ nunit-*.xml
 # Rider
 riderModule.iml
 /_ReSharper.Caches/
+.idea/
