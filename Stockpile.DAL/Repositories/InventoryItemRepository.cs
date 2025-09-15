@@ -1,5 +1,5 @@
 using MongoDB.Driver;
-using Stockpile.DAL.Models;
+using Stockpile.Domain.Entities;
 
 namespace Stockpile.DAL.Repositories;
 
