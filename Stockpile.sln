@@ -12,6 +12,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stockpile.Application", "St
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stockpile.UnitTests", "Stockpile.UnitTests\Stockpile.UnitTests.csproj", "{1253365E-8728-42A5-82D2-908FC3025A46}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{70E5B59F-133F-4B32-9505-B1747E650778}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -85,5 +87,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{1253365E-8728-42A5-82D2-908FC3025A46} = {70E5B59F-133F-4B32-9505-B1747E650778}
 	EndGlobalSection
 EndGlobal
