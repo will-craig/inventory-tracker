@@ -8,6 +8,8 @@ public record InventoryItem(string id) : CollectionBase(id)
 {
     public InventoryItem(): this(ObjectId.GenerateNewId().ToString()) { }
     
+    public void SetId(string id) => Id = id;
+    
     [BsonRequired]
     public required string Name { get; set; }
 

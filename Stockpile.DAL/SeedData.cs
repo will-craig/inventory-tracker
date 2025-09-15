@@ -42,7 +42,6 @@ public static class SeedData
         
         var newUser = new UserProfile
         {
-            Id = ObjectId.GenerateNewId().ToString(),
             Username = userProfile.Username,
             Email = userProfile.Email,
             Preferences = userProfile.Preferences

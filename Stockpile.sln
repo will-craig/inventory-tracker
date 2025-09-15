@@ -14,6 +14,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stockpile.UnitTests", "Stoc
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{70E5B59F-133F-4B32-9505-B1747E650778}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stockpile.IntegrationTests", "Stockpile.IntegrationTests\Stockpile.IntegrationTests.csproj", "{78A878F1-B6BD-499A-8F25-7BFF2FC22002}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -84,11 +86,24 @@ Global
 		{1253365E-8728-42A5-82D2-908FC3025A46}.Release|x64.Build.0 = Release|Any CPU
 		{1253365E-8728-42A5-82D2-908FC3025A46}.Release|x86.ActiveCfg = Release|Any CPU
 		{1253365E-8728-42A5-82D2-908FC3025A46}.Release|x86.Build.0 = Release|Any CPU
+		{78A878F1-B6BD-499A-8F25-7BFF2FC22002}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{78A878F1-B6BD-499A-8F25-7BFF2FC22002}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{78A878F1-B6BD-499A-8F25-7BFF2FC22002}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{78A878F1-B6BD-499A-8F25-7BFF2FC22002}.Debug|x64.Build.0 = Debug|Any CPU
+		{78A878F1-B6BD-499A-8F25-7BFF2FC22002}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{78A878F1-B6BD-499A-8F25-7BFF2FC22002}.Debug|x86.Build.0 = Debug|Any CPU
+		{78A878F1-B6BD-499A-8F25-7BFF2FC22002}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{78A878F1-B6BD-499A-8F25-7BFF2FC22002}.Release|Any CPU.Build.0 = Release|Any CPU
+		{78A878F1-B6BD-499A-8F25-7BFF2FC22002}.Release|x64.ActiveCfg = Release|Any CPU
+		{78A878F1-B6BD-499A-8F25-7BFF2FC22002}.Release|x64.Build.0 = Release|Any CPU
+		{78A878F1-B6BD-499A-8F25-7BFF2FC22002}.Release|x86.ActiveCfg = Release|Any CPU
+		{78A878F1-B6BD-499A-8F25-7BFF2FC22002}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{1253365E-8728-42A5-82D2-908FC3025A46} = {70E5B59F-133F-4B32-9505-B1747E650778}
+		{78A878F1-B6BD-499A-8F25-7BFF2FC22002} = {70E5B59F-133F-4B32-9505-B1747E650778}
 	EndGlobalSection
 EndGlobal

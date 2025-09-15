@@ -14,7 +14,6 @@ public class UserProfileMapperTests
     {
         var request = new UserProfileRequest
         {
-            Id = "user123",
             Username = "DemoUser",
             Email = "demo@example.com",
             Preferences = new UserPreferences { DefaultUnits = Unit.Litre, NotificationsEnabled = true }
@@ -32,7 +31,6 @@ public class UserProfileMapperTests
     {
         var entity = new UserProfile
         {
-            Id = "user456",
             Username = "AnotherUser",
             Email = "another@example.com",
             Preferences = new UserPreferences { DefaultUnits = Unit.Part, NotificationsEnabled = false }

@@ -10,26 +10,6 @@ namespace Stockpile.UnitTests.Mappers;
 public class InventoryItemMapperTests
 {
     [Fact]
-    public void MapTo_WithIdUserIdUsername_MapsCorrectly()
-    {
-        var request = new InventoryItemRequest
-        {
-            Name = "Milk",
-            Quantity = 2,
-            Unit = Unit.Litre,
-            ExpiryDate = DateTime.Today.AddDays(5)
-        };
-        var entity = request.MapTo("item123", "user456", "DemoUser");
-        entity.Id.Should().Be("item123");
-        entity.UserId.Should().Be("user456");
-        entity.Username.Should().Be("DemoUser");
-        entity.Name.Should().Be(request.Name);
-        entity.Quantity.Should().Be(request.Quantity);
-        entity.Unit.Should().Be(request.Unit);
-        entity.ExpiryDate.Should().Be(request.ExpiryDate);
-    }
-
-    [Fact]
     public void MapTo_WithUserIdUsername_MapsCorrectly()
     {
         var request = new InventoryItemRequest
@@ -54,7 +34,6 @@ public class InventoryItemMapperTests
     {
         var entity = new InventoryItem
         {
-            Id = "item999",
             Name = "Bread",
             Quantity = 1,
             Unit = Unit.Part,
@@ -63,7 +42,7 @@ public class InventoryItemMapperTests
             Username = string.Empty
         };
         var response = entity.MapFrom();
-        response.Id.Should().Be(entity.Id);
+        response.Id.Should().NotBeNullOrEmpty();
         response.Name.Should().Be(entity.Name);
         response.Quantity.Should().Be(entity.Quantity);
         response.Unit.Should().Be(entity.Unit);

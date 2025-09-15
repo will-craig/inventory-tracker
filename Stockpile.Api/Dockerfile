@@ -4,18 +4,18 @@ EXPOSE 8080
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
-COPY ["Stockpile/Stockpile.csproj", "Stockpile/"]
+COPY ["Stockpile.Api/Stockpile.Api.csproj", "Stockpile.Api/"]
 COPY ["Stockpile.DAL/Stockpile.DAL.csproj", "Stockpile.DAL/"]
 
-RUN dotnet restore "Stockpile/Stockpile.csproj"
+RUN dotnet restore "Stockpile.Api/Stockpile.Api.csproj"
 COPY . .
-WORKDIR "/src/Stockpile"
-RUN dotnet build "Stockpile.csproj" -c Release -o /app/build
+WORKDIR "/src/Stockpile.Api"
+RUN dotnet build "Stockpile.Api.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "Stockpile.csproj" -c Release -o /app/publish
+RUN dotnet publish "Stockpile.Api.csproj" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Stockpile.dll"]
+ENTRYPOINT ["dotnet", "Stockpile.Api.dll"]

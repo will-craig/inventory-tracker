@@ -22,7 +22,7 @@ services:
   stockpile-api:
     build:
       context: .
-      dockerfile: Stockpile/Dockerfile
+      dockerfile: Stockpile.Api/Dockerfile
     container_name: stockpile_api
     ports:
       - "8080:8080"

@@ -6,6 +6,9 @@ namespace Stockpile.Domain.Entities;
 
 public record UserProfile(string id) : CollectionBase(id)
 {
+    /// <summary>
+    /// Parameterless constructor will create a new Id
+    /// </summary>
     public UserProfile(): this(ObjectId.GenerateNewId().ToString()) { }
     
     [BsonRequired]

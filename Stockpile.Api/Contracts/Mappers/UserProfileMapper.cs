@@ -18,9 +18,8 @@ public static class UserProfileMapper
     
     public static UserProfile MapTo(this UserProfileRequest userProfileRequest)
     {
-        return new UserProfile
+        return new UserProfile(userProfileRequest.Id)
         {
-            Id = userProfileRequest.Id,
             Username = userProfileRequest.Username,
             Email = userProfileRequest.Email,
             Preferences = userProfileRequest.Preferences

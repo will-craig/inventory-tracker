@@ -8,7 +8,7 @@ public abstract record CollectionBase(string id)
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
     [BsonRequired]
-    public string Id { get; set; } = id;
+    public string Id { get; protected set; } = id;
 
     [BsonElement("createdAt")]
     [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
