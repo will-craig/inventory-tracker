@@ -2,7 +2,7 @@ using Stockpile.Domain.Enums;
 
 namespace Stockpile.Api.Contracts.Requests;
 
-public class InventoryItemRequest
+public record InventoryItemRequest
 {
     public required string Name { get; set; }
     public int Quantity { get; set; }
