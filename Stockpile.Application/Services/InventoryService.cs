@@ -3,6 +3,9 @@ using Stockpile.Domain.Entities;
 
 namespace Stockpile.Api.Services;
 
+/// <summary>
+/// TODO: This logic to be migrated to Commands and Queryies
+/// </summary>
 public interface IInventoryService
 {
     Task<InventoryItem?> GetInventoryItemAsync(string id);

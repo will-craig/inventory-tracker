@@ -1,9 +1,8 @@
-using MongoDB.Bson;
 using MongoDB.Driver;
 using Stockpile.Domain.Entities;
 using YamlDotNet.Serialization;
 
-namespace Stockpile.DAL;
+namespace Stockpile.Api;
 
 public static class SeedData
 {

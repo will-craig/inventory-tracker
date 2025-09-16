@@ -3,7 +3,7 @@ Collection:
   - UserProfile:
       Email: demo1@user.com
       Username: DemoUser1
-      Role: Admin
+      UserRole: Admin
     Inventory:
       - Name: Eggs
         Quantity: 12
@@ -18,8 +18,8 @@ Collection:
   - UserProfile:
       Email: demo2@user.com
       Username: DemoUser2
-      Role: User
+      UserRole: User
     Inventory:
       - Name: Milk
         Quantity: 0.5
-        Unit: Liters
+        Unit: Litre

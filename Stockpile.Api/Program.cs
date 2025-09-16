@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
+using Stockpile.Api;
 using Stockpile.Api.Config;
 using Stockpile.Api.Services;
 using Stockpile.DAL;
