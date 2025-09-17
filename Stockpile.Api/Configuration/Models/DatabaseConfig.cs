@@ -1,4 +1,4 @@
-namespace Stockpile.Api.Config;
+namespace Stockpile.Api.Configuration.Models;
 
 public class DatabaseConfig
 {

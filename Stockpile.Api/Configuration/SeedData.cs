@@ -2,7 +2,7 @@ using MongoDB.Driver;
 using Stockpile.Domain.Entities;
 using YamlDotNet.Serialization;
 
-namespace Stockpile.Api;
+namespace Stockpile.Api.Configuration;
 
 public static class SeedData
 {

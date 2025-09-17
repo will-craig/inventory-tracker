@@ -25,5 +25,4 @@
       <ProjectReference Include="..\Stockpile.Application\Stockpile.Application.csproj" />
       <ProjectReference Include="..\Stockpile.DAL\Stockpile.DAL.csproj" />
     </ItemGroup>
-
 </Project>
