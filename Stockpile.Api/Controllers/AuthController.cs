@@ -9,6 +9,9 @@ namespace Stockpile.Api.Controllers;
 public class AuthController(ITokenService tokenService, IUserProfileService userProfileService) : ControllerBase
 {
     [HttpPost("login")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Login([FromBody] LoginRequest? user)
     {
         if (user == null || string.IsNullOrEmpty(user.Username) || string.IsNullOrEmpty(user.Password))
