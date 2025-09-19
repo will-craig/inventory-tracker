@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Stockpile.Api.Contracts.Requests;
 using Stockpile.Api.Services;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Stockpile.Api.Controllers;
 
@@ -9,6 +10,7 @@ namespace Stockpile.Api.Controllers;
 public class AuthController(ITokenService tokenService, IUserProfileService userProfileService) : ControllerBase
 {
     [HttpPost("login")]
+    [SwaggerOperation(OperationId ="Login")]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -32,7 +33,9 @@ public static class ServiceRegistration
             return client.GetDatabase(config.DatabaseName);
         });
 
-        services.AddControllers();
+        services.AddControllers() 
+            .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter())); 
+        
         services.AddEndpointsApiExplorer();
         services.AddHttpContextAccessor();
         services.AddAuthentication("Bearer")
@@ -55,6 +58,7 @@ public static class ServiceRegistration
         services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc("v1", new() { Title = "Fridge Tracker API", Version = "v1" });
+            c.EnableAnnotations();
             c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 In = ParameterLocation.Header,

@@ -1,6 +1,7 @@
 using Stockpile.Api.Contracts.Requests;
 using Stockpile.Api.Contracts.Response;
 using Stockpile.Domain.Entities;
+using Stockpile.Domain.Enums;
 
 namespace Stockpile.Api.Contracts.Mappers;
 

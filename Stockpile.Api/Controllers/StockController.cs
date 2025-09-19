@@ -4,7 +4,7 @@ using Stockpile.Api.Contracts.Mappers;
 using Stockpile.Api.Contracts.Requests;
 using Stockpile.Api.Contracts.Response;
 using Stockpile.Api.Services;
-using Stockpile.Domain.Entities;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Stockpile.Api.Controllers;
 
@@ -14,8 +14,10 @@ namespace Stockpile.Api.Controllers;
 public class StockController(IInventoryService inventoryService, ICurrentUserService currentUserService) : ControllerBase
 {
     [HttpGet]
+    [SwaggerOperation(OperationId ="GetStock")]
     [ProducesResponseType(typeof(List<InventoryItemResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<List<InventoryItem>>> GetStock()
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<List<InventoryItemResponse>>> GetStock()
     {
         var username = currentUserService.Username;
         if(username == null)
@@ -27,8 +29,11 @@ public class StockController(IInventoryService inventoryService, ICurrentUserSer
     }
     
     [HttpGet("{id}")]
-    [ProducesResponseType(typeof(List<InventoryItemResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<List<InventoryItem>>> GetStock(string id)
+    [SwaggerOperation(OperationId ="GetStockById")]
+    [ProducesResponseType(typeof(InventoryItemResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<InventoryItemResponse>> GetStock(string id)
     {
         var result = await inventoryService.GetInventoryItemAsync(id);
         if(result == null)
@@ -41,7 +46,9 @@ public class StockController(IInventoryService inventoryService, ICurrentUserSer
     }
 
     [HttpPost]
+    [SwaggerOperation(OperationId ="AddStock")]
     [ProducesResponseType(typeof(InventoryItemResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<InventoryItemResponse>> AddStock(InventoryItemRequest request)
     {
         var userId = currentUserService.UserId;
@@ -55,6 +62,8 @@ public class StockController(IInventoryService inventoryService, ICurrentUserSer
     }
     
     [HttpPut("{id}")]
+    [SwaggerOperation(OperationId ="UpdateStock")]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(InventoryItemResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<InventoryItemResponse>> UpdateStock(string id, InventoryItemRequest request)
     {
@@ -70,7 +79,10 @@ public class StockController(IInventoryService inventoryService, ICurrentUserSer
     }
     
     [HttpDelete("{id}")]
+    [SwaggerOperation(OperationId ="DeleteStock")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteStock(string id)
     {
         var result = await inventoryService.GetInventoryItemAsync(id);

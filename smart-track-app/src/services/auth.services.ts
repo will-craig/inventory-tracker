@@ -1,4 +1,4 @@
-import { api } from "../../../index";
+import { api } from "../../index";
 import { setAuthToken } from "./clients/http";
 import { LoginRequest } from "./clients/api-client";
 

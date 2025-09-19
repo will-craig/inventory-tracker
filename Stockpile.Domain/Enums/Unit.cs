@@ -1,7 +1,11 @@
+using System.Text.Json.Serialization;
+
 namespace Stockpile.Domain.Enums;
 
+[JsonConverter(typeof(JsonStringEnumConverter<Unit>))]
 public enum Unit
 {
+    None = 0,
     Part = 1,
     Gram = 2,
     Litre = 3,

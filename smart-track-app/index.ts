@@ -1,9 +1,8 @@
 import { registerRootComponent } from 'expo';
-
-import App from './App';
 // src/api/index.ts
-import { ApiClient } from './src/app/services/clients/api-client';
-import { http } from './src/app/services/clients/http';
+import { ApiClient } from './src/services/clients/api-client';
+import { http } from './src/services/clients/http';
+import App from "./src/App";
 
 export const api = new ApiClient(http.defaults.baseURL!, http);
 

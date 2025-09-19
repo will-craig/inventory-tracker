@@ -24,24 +24,27 @@ export interface IApiClient {
   /**
    * @return OK
    */
-  stockAll(signal?: AbortSignal): Promise<InventoryItemResponse[]>;
+  getStock(signal?: AbortSignal): Promise<InventoryItemResponse[]>;
   /**
    * @param body (optional)
    * @return Created
    */
-  stockPOST(
+  addStock(
     body?: InventoryItemRequest | undefined,
     signal?: AbortSignal,
   ): Promise<InventoryItemResponse>;
   /**
    * @return OK
    */
-  stockAll2(id: string, signal?: AbortSignal): Promise<InventoryItemResponse[]>;
+  getStockById(
+    id: string,
+    signal?: AbortSignal,
+  ): Promise<InventoryItemResponse>;
   /**
    * @param body (optional)
    * @return OK
    */
-  stockPUT(
+  updateStock(
     id: string,
     body?: InventoryItemRequest | undefined,
     signal?: AbortSignal,
@@ -49,7 +52,7 @@ export interface IApiClient {
   /**
    * @return No Content
    */
-  stockDELETE(id: string, signal?: AbortSignal): Promise<void>;
+  deleteStock(id: string, signal?: AbortSignal): Promise<void>;
 }
 
 export class ApiClient implements IApiClient {
@@ -164,7 +167,7 @@ export class ApiClient implements IApiClient {
   /**
    * @return OK
    */
-  stockAll(signal?: AbortSignal): Promise<InventoryItemResponse[]> {
+  getStock(signal?: AbortSignal): Promise<InventoryItemResponse[]> {
     let url_ = this.baseUrl + "/api/Stock";
     url_ = url_.replace(/[?&]$/, "");
 
@@ -192,12 +195,12 @@ export class ApiClient implements IApiClient {
         return this.transformResult(
           url_,
           _response,
-          (_response: AxiosResponse) => this.processStockAll(_response),
+          (_response: AxiosResponse) => this.processGetStock(_response),
         );
       });
   }
 
-  protected processStockAll(
+  protected processGetStock(
     response: AxiosResponse,
   ): Promise<InventoryItemResponse[]> {
     const status = response.status;
@@ -221,6 +224,18 @@ export class ApiClient implements IApiClient {
         result200 = null as any;
       }
       return Promise.resolve<InventoryItemResponse[]>(result200);
+    } else if (status === 401) {
+      const _responseText = response.data;
+      let result401: any = null;
+      let resultData401 = _responseText;
+      result401 = ProblemDetails.fromJS(resultData401);
+      return throwException(
+        "Unauthorized",
+        status,
+        _responseText,
+        _headers,
+        result401,
+      );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
@@ -237,7 +252,7 @@ export class ApiClient implements IApiClient {
    * @param body (optional)
    * @return Created
    */
-  stockPOST(
+  addStock(
     body?: InventoryItemRequest | undefined,
     signal?: AbortSignal,
   ): Promise<InventoryItemResponse> {
@@ -272,12 +287,12 @@ export class ApiClient implements IApiClient {
         return this.transformResult(
           url_,
           _response,
-          (_response: AxiosResponse) => this.processStockPOST(_response),
+          (_response: AxiosResponse) => this.processAddStock(_response),
         );
       });
   }
 
-  protected processStockPOST(
+  protected processAddStock(
     response: AxiosResponse,
   ): Promise<InventoryItemResponse> {
     const status = response.status;
@@ -295,6 +310,18 @@ export class ApiClient implements IApiClient {
       let resultData201 = _responseText;
       result201 = InventoryItemResponse.fromJS(resultData201);
       return Promise.resolve<InventoryItemResponse>(result201);
+    } else if (status === 401) {
+      const _responseText = response.data;
+      let result401: any = null;
+      let resultData401 = _responseText;
+      result401 = ProblemDetails.fromJS(resultData401);
+      return throwException(
+        "Unauthorized",
+        status,
+        _responseText,
+        _headers,
+        result401,
+      );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
@@ -310,10 +337,10 @@ export class ApiClient implements IApiClient {
   /**
    * @return OK
    */
-  stockAll2(
+  getStockById(
     id: string,
     signal?: AbortSignal,
-  ): Promise<InventoryItemResponse[]> {
+  ): Promise<InventoryItemResponse> {
     let url_ = this.baseUrl + "/api/Stock/{id}";
     if (id === undefined || id === null)
       throw new globalThis.Error("The parameter 'id' must be defined.");
@@ -344,14 +371,14 @@ export class ApiClient implements IApiClient {
         return this.transformResult(
           url_,
           _response,
-          (_response: AxiosResponse) => this.processStockAll2(_response),
+          (_response: AxiosResponse) => this.processGetStockById(_response),
         );
       });
   }
 
-  protected processStockAll2(
+  protected processGetStockById(
     response: AxiosResponse,
-  ): Promise<InventoryItemResponse[]> {
+  ): Promise<InventoryItemResponse> {
     const status = response.status;
     let _headers: any = {};
     if (response.headers && typeof response.headers === "object") {
@@ -365,14 +392,32 @@ export class ApiClient implements IApiClient {
       const _responseText = response.data;
       let result200: any = null;
       let resultData200 = _responseText;
-      if (Array.isArray(resultData200)) {
-        result200 = [] as any;
-        for (let item of resultData200)
-          result200!.push(InventoryItemResponse.fromJS(item));
-      } else {
-        result200 = null as any;
-      }
-      return Promise.resolve<InventoryItemResponse[]>(result200);
+      result200 = InventoryItemResponse.fromJS(resultData200);
+      return Promise.resolve<InventoryItemResponse>(result200);
+    } else if (status === 401) {
+      const _responseText = response.data;
+      let result401: any = null;
+      let resultData401 = _responseText;
+      result401 = ProblemDetails.fromJS(resultData401);
+      return throwException(
+        "Unauthorized",
+        status,
+        _responseText,
+        _headers,
+        result401,
+      );
+    } else if (status === 404) {
+      const _responseText = response.data;
+      let result404: any = null;
+      let resultData404 = _responseText;
+      result404 = ProblemDetails.fromJS(resultData404);
+      return throwException(
+        "Not Found",
+        status,
+        _responseText,
+        _headers,
+        result404,
+      );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
@@ -382,14 +427,14 @@ export class ApiClient implements IApiClient {
         _headers,
       );
     }
-    return Promise.resolve<InventoryItemResponse[]>(null as any);
+    return Promise.resolve<InventoryItemResponse>(null as any);
   }
 
   /**
    * @param body (optional)
    * @return OK
    */
-  stockPUT(
+  updateStock(
     id: string,
     body?: InventoryItemRequest | undefined,
     signal?: AbortSignal,
@@ -428,12 +473,12 @@ export class ApiClient implements IApiClient {
         return this.transformResult(
           url_,
           _response,
-          (_response: AxiosResponse) => this.processStockPUT(_response),
+          (_response: AxiosResponse) => this.processUpdateStock(_response),
         );
       });
   }
 
-  protected processStockPUT(
+  protected processUpdateStock(
     response: AxiosResponse,
   ): Promise<InventoryItemResponse> {
     const status = response.status;
@@ -451,6 +496,18 @@ export class ApiClient implements IApiClient {
       let resultData200 = _responseText;
       result200 = InventoryItemResponse.fromJS(resultData200);
       return Promise.resolve<InventoryItemResponse>(result200);
+    } else if (status === 401) {
+      const _responseText = response.data;
+      let result401: any = null;
+      let resultData401 = _responseText;
+      result401 = ProblemDetails.fromJS(resultData401);
+      return throwException(
+        "Unauthorized",
+        status,
+        _responseText,
+        _headers,
+        result401,
+      );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
@@ -466,7 +523,7 @@ export class ApiClient implements IApiClient {
   /**
    * @return No Content
    */
-  stockDELETE(id: string, signal?: AbortSignal): Promise<void> {
+  deleteStock(id: string, signal?: AbortSignal): Promise<void> {
     let url_ = this.baseUrl + "/api/Stock/{id}";
     if (id === undefined || id === null)
       throw new globalThis.Error("The parameter 'id' must be defined.");
@@ -495,12 +552,12 @@ export class ApiClient implements IApiClient {
         return this.transformResult(
           url_,
           _response,
-          (_response: AxiosResponse) => this.processStockDELETE(_response),
+          (_response: AxiosResponse) => this.processDeleteStock(_response),
         );
       });
   }
 
-  protected processStockDELETE(response: AxiosResponse): Promise<void> {
+  protected processDeleteStock(response: AxiosResponse): Promise<void> {
     const status = response.status;
     let _headers: any = {};
     if (response.headers && typeof response.headers === "object") {
@@ -513,6 +570,30 @@ export class ApiClient implements IApiClient {
     if (status === 204) {
       const _responseText = response.data;
       return Promise.resolve<void>(null as any);
+    } else if (status === 401) {
+      const _responseText = response.data;
+      let result401: any = null;
+      let resultData401 = _responseText;
+      result401 = ProblemDetails.fromJS(resultData401);
+      return throwException(
+        "Unauthorized",
+        status,
+        _responseText,
+        _headers,
+        result401,
+      );
+    } else if (status === 404) {
+      const _responseText = response.data;
+      let result404: any = null;
+      let resultData404 = _responseText;
+      result404 = ProblemDetails.fromJS(resultData404);
+      return throwException(
+        "Not Found",
+        status,
+        _responseText,
+        _headers,
+        result404,
+      );
     } else if (status !== 200 && status !== 204) {
       const _responseText = response.data;
       return throwException(
@@ -737,23 +818,24 @@ export interface IProblemDetails {
 }
 
 export enum Unit {
-  _1 = 1,
-  _2 = 2,
-  _3 = 3,
-  _4 = 4,
-  _5 = 5,
-  _6 = 6,
-  _7 = 7,
-  _8 = 8,
-  _9 = 9,
-  _10 = 10,
-  _11 = 11,
-  _12 = 12,
-  _13 = 13,
-  _14 = 14,
-  _15 = 15,
-  _16 = 16,
-  _17 = 17,
+  None = "None",
+  Part = "Part",
+  Gram = "Gram",
+  Litre = "Litre",
+  Milliliter = "Milliliter",
+  Cup = "Cup",
+  Tablespoon = "Tablespoon",
+  Teaspoon = "Teaspoon",
+  Ounce = "Ounce",
+  Pound = "Pound",
+  Kilogram = "Kilogram",
+  Gallon = "Gallon",
+  Quart = "Quart",
+  Pint = "Pint",
+  FluidOunce = "FluidOunce",
+  CubicCentimeter = "CubicCentimeter",
+  CubicMeter = "CubicMeter",
+  CubicInch = "CubicInch",
 }
 
 export class SwaggerException extends Error {
