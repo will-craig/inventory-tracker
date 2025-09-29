@@ -19,8 +19,9 @@ export const InventoryService = {
 
   async save(item: InventoryItem): Promise<InventoryItem> {
     const itemPayload = toApi(item);
-    return item.id
-      ? api.updateStock(item.id, itemPayload) // update
-      : api.addStock(itemPayload); // create
+    const result = item.id
+      ? await api.updateStock(item.id, itemPayload) // update
+      : await api.addStock(itemPayload); // create
+    return fromApi(result);
   },
 };

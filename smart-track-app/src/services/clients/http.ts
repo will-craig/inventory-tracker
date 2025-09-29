@@ -1,24 +1,23 @@
 // src/api/http.ts
 import axios from "axios";
 import { Platform } from "react-native";
+import {AuthStore} from "../../auth/auth-store";
 
-const baseUrl = Platform.select({
-  android: __DEV__ ? "http://10.0.2.2:8080" : "http://localhost:8080",
-  ios: __DEV__ ? "http://localhost:8080" : "http://localhost:8080",
-  default: "http://localhost:8080",
-});
+const devBase =
+  Platform.OS === 'android' ? 'de:a0:db:98:a1:d5:8080' :
+  Platform.OS === 'ios'     ? 'https://localhost:8080'  :
+  Platform.OS === 'web'     ? 'https://localhost:8080' : 
+  'https://192.168.1.10:8080';
 
 export const http = axios.create({
-  baseURL: baseUrl,
+  baseURL: __DEV__ ? devBase : 'https://api.example.com',
   timeout: 15000,
 });
 
-let token: string | null = null;
-export const setAuthToken = (t: string | null) => {
-  token = t;
-};
-
 http.interceptors.request.use((cfg) => {
-  if (token) cfg.headers = { ...cfg.headers, Authorization: `Bearer ${token}` };
+  const token = AuthStore.get();
+  if (token) {
+    (cfg.headers as any).Authorization = `Bearer ${token}`;
+  }
   return cfg;
 });

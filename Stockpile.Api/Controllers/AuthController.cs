@@ -19,7 +19,7 @@ public class AuthController(ITokenService tokenService, IUserProfileService user
         if (user == null || string.IsNullOrEmpty(user.Username) || string.IsNullOrEmpty(user.Password))
             return BadRequest("Invalid user credentials.");
         
-        if (user.Username != "DemoUser1" || user.Password != "password") 
+        if (user.Password != "password") 
             return Unauthorized();
         
         var userProfile = await userProfileService.GetUserProfile(user.Username);

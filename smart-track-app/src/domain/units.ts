@@ -23,23 +23,23 @@ export function unitLabel(u: Unit): string {
     case Unit.Teaspoon:
       return "Teaspoon (tsp)";
     case Unit.Ounce:
-      return "Ounce (oz)";
+      return "Ounces (oz)";
     case Unit.Pound:
-      return "Pound (lb)";
+      return "Pounds (lb)";
     case Unit.Kilogram:
-      return "Kilogram (kg)";
+      return "Kilograms (kg)";
     case Unit.Gallon:
-      return "Gallon (gal)";
+      return "Gallons (gal)";
     case Unit.Quart:
-      return "Quart (qt)";
+      return "Quarts (qt)";
     case Unit.Pint:
-      return "Pint (pt)";
+      return "Pints (pt)";
     case Unit.FluidOunce:
-      return "Fluid Ounce (fl oz)";
+      return "Fluid Ounces (fl oz)";
     case Unit.CubicCentimeter:
-      return "Cubic Centimeter (cc)";
+      return "Cubic Centimeters (cc)";
     case Unit.CubicMeter:
-      return "Cubic Meter (m³)";
+      return "Cubic Meters (m³)";
     case Unit.CubicInch:
       return "Cubic Inch (in³)";
     default:

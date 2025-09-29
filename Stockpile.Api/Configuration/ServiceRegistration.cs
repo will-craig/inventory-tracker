@@ -52,7 +52,7 @@ public static class ServiceRegistration
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = jwtSettings.Issuer,
                     ValidAudience = jwtSettings.Audience,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    IssuerSigningKey = new SymmetricSecurityKey(key)
                 };
             });
         services.AddSwaggerGen(c =>
@@ -82,7 +82,19 @@ public static class ServiceRegistration
                 }
             });
         });
-
+        
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy(name: "AllowAny",
+                policy =>
+                {
+                    policy.SetIsOriginAllowed(_ => true) // dev only
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials();
+                });
+        });
+        
         services.AddScoped<IInventoryService, InventoryService>();
         services.AddScoped<IUserProfileService, UserProfileService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();

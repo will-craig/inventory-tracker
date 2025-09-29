@@ -1,148 +1,194 @@
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  ActivityIndicator,
-  Button,
-  RefreshControl,
-  Alert,
-  Pressable,
-  Modal,
-} from "react-native";
+import { View } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../App";
 import { InventoryService } from "../../services/inventory.service";
 import InventoryForm from "./inventory-form";
 import { InventoryItem } from "../../domain/models/inventory-item";
+import {
+    ActivityIndicator,
+    Button,
+    Card,
+    Dialog,
+    FAB,
+    List,
+    Modal,
+    Portal,
+    Snackbar,
+    Text,
+} from "react-native-paper";
+
 type Props = NativeStackScreenProps<RootStackParamList, "InventoryList">;
 
 export default function InventoryList({ navigation }: Props) {
-  const [items, setItems] = useState<InventoryItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editing, setEditing] = useState<InventoryItem | null>(null);
+    const [items, setItems] = useState<InventoryItem[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-  const load = async () => {
-    setError(null);
-    try {
-      const data = await InventoryService.list();
-      setItems(data);
-    } catch (e: any) {
-      setError(e?.message ?? "Failed to load");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+    // create/edit modal
+    const [modalOpen, setModalOpen] = useState(false);
+    const [editing, setEditing] = useState<InventoryItem | null>(null);
 
-  useEffect(() => {
-    load();
-  }, []);
+    // delete confirm dialog
+    const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    load();
-  };
-  const onCreate = () => {
-    setEditing(null);
-    setModalOpen(true);
-  };
-  const onEdit = (item: InventoryItem) => {
-    setEditing(item);
-    setModalOpen(true);
-  };
+    // snackbar
+    const [snack, setSnack] = useState<{ visible: boolean; msg: string; error?: boolean }>({
+        visible: false,
+        msg: "",
+    });
 
-  const onDelete = async (id: string) => {
-    Alert.alert("Delete item?", "This action cannot be undone.", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await InventoryService.delete(id);
+    const showSnack = (msg: string, error = false) => setSnack({ visible: true, msg, error });
+
+    const load = async () => {
+        setError(null);
+        try {
+            const data = await InventoryService.list();
+            setItems(data);
+        } catch (e: any) {
+            setError(e?.message ?? "Failed to load");
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
+    };
+
+    useEffect(() => {
+        load();
+    }, []);
+
+    const onCreate = () => {
+        setEditing(null);
+        setModalOpen(true);
+    };
+
+    const onEdit = (item: InventoryItem) => {
+        setEditing(item);
+        setModalOpen(true);
+    };
+
+    const onDelete = (id?: string) => {
+        if (!id) return;
+        setDeleteId(id); // show dialog
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteId) return;
+        try {
+            // Optimistic update
+            setItems((prev) => prev.filter((x) => x.id !== deleteId));
+            await InventoryService.delete(deleteId);
+            showSnack("Item deleted");
+        } catch (e: any) {
+            showSnack(e?.message ?? "Delete failed", true);
+            // Reload to be safe if server failed
             await load();
-          } catch (e: any) {
-            Alert.alert("Delete failed", e?.message ?? "Error");
-          }
-        },
-      },
-    ]);
-  };
+        } finally {
+            setDeleteId(null);
+        }
+    };
 
-  const empty = useMemo(() => items.length === 0, [items]);
+    const empty = useMemo(() => items.length === 0, [items]);
 
-  if (loading) return <ActivityIndicator style={{ marginTop: 40 }} />;
-  if (error)
+    if (loading) return <ActivityIndicator style={{ marginTop: 40 }} />;
+
+    if (error)
+        return (
+            <View style={{ padding: 16 }}>
+                <Text style={{ color: "crimson", marginBottom: 12 }}>{error}</Text>
+                <Button mode="contained" onPress={load}>Retry</Button>
+            </View>
+        );
+
     return (
-      <View style={{ padding: 16 }}>
-        <Text style={{ color: "crimson" }}>{error}</Text>
-        <Button title="Retry" onPress={load} />
-      </View>
-    );
+        <View style={{ flex: 1 }}>
+            <List.Section>
+                {empty ? (
+                    <Text style={{ padding: 16, opacity: 0.7 }}>No inventory items yet</Text>
+                ) : (
+                    items.map((item) => {
+                        const hasId = !!item.id;
+                        return (
+                            <Card
+                                key={item.id ?? `temp-${item.name}-${Math.random()}`}
+                                style={{ marginHorizontal: 12, marginVertical: 6, opacity: hasId ? 1 : 0.6 }}
+                                onPress={() => hasId && navigation.navigate("InventoryDetail", { id: item.id! })}
+                            >
+                                <Card.Title
+                                    title={hasId ? item.name : `(unsaved) ${item.name}`}
+                                    subtitle={`${item.quantity ?? 0} ${String(item.unit ?? "")}`}
+                                    right={() => (
+                                        <View style={{ flexDirection: "row", gap: 8, paddingRight: 8 }}>
+                                            <Button compact onPress={() => onEdit(item)}>Edit</Button>
+                                            <Button compact textColor="#c00" onPress={() => onDelete(item.id)} disabled={!hasId}>
+                                                Delete
+                                            </Button>
+                                        </View>
+                                    )}
+                                />
+                            </Card>
+                        );
+                    })
+                )}
+            </List.Section>
 
-  return (
-    <View style={{ flex: 1 }}>
-      <FlatList
-        data={items}
-        keyExtractor={(item, index) => item.id ?? `temp-${index}`} // works for drafts
-        renderItem={({ item, index }) => {
-          const hasId = !!item.id;
-          return (
-            <Pressable
-              disabled={!hasId}
-              onPress={() =>
-                hasId &&
-                navigation.navigate("InventoryDetail", { id: item.id! })
-              }
-              style={{
-                padding: 12,
-                borderBottomWidth: 1,
-                borderColor: "#eee",
-                opacity: hasId ? 1 : 0.6,
-              }}
+            {/* Add FAB */}
+            <FAB
+                icon="plus"
+                label="Add item"
+                onPress={onCreate}
+                style={{ position: "absolute", right: 16, bottom: 24 }}
+            />
+
+            {/* Create/Edit Modal (Paper Modal wraps the content nicely on web + native) */}
+            <Portal>
+                <Modal visible={modalOpen} onDismiss={() => setModalOpen(false)} contentContainerStyle={{ backgroundColor: "white", margin: 16, borderRadius: 12, padding: 12 }}>
+                    <InventoryForm
+                        initial={editing ?? undefined}
+                        onCancel={() => setModalOpen(false)}
+                        onSubmit={async (values) => {
+                            try {
+                                setSaving(true);
+                                const payload: InventoryItem = editing ? { ...editing, ...values } : (values as InventoryItem);
+                                await InventoryService.save(payload);
+                                setModalOpen(false);
+                                await load();
+                                showSnack(editing ? "Item updated" : "Item created");
+                            } catch (e: any) {
+                                showSnack(e?.message ?? "Save failed", true);
+                            } finally {
+                                setSaving(false);
+                            }
+                        }}
+                    />
+                </Modal>
+            </Portal>
+
+            {/* Delete confirmation dialog */}
+            <Portal>
+                <Dialog visible={!!deleteId} onDismiss={() => setDeleteId(null)}>
+                    <Dialog.Title>Delete item?</Dialog.Title>
+                    <Dialog.Content>
+                        <Text>This action cannot be undone.</Text>
+                    </Dialog.Content>
+                    <Dialog.Actions>
+                        <Button onPress={() => setDeleteId(null)}>Cancel</Button>
+                        <Button textColor="#c00" onPress={confirmDelete}>Delete</Button>
+                    </Dialog.Actions>
+                </Dialog>
+            </Portal>
+
+            {/* Snackbar for feedback */}
+            <Snackbar
+                visible={snack.visible}
+                onDismiss={() => setSnack({ visible: false, msg: "" })}
+                duration={2500}
+                style={snack.error ? { backgroundColor: "#b00020" } : undefined}
             >
-              <Text style={{ fontWeight: "600" }}>{item.name}</Text>
-              <Text>
-                {item.quantity ?? 0} {String(item.unit ?? "")}
-              </Text>
-
-              <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
-                <Button title="Edit" onPress={() => onEdit(item)} />
-                <Button
-                  title="Delete"
-                  onPress={() => hasId && onDelete(item.id!)}
-                  disabled={!hasId}
-                />
-              </View>
-            </Pressable>
-          );
-        }}
-      />
-
-      <Modal
-        visible={modalOpen}
-        animationType="slide"
-        onRequestClose={() => setModalOpen(false)}
-      >
-        <InventoryForm
-          initial={editing ?? undefined}
-          onCancel={() => setModalOpen(false)}
-          onSubmit={async (values) => {
-            try {
-              //if (editing) await InventoryService.save(editing.id, values);
-              //else await InventoryService.save(values);
-              setModalOpen(false);
-              await load();
-            } catch (e: any) {
-              Alert.alert("Save failed", e?.message ?? "Error");
-            }
-          }}
-        />
-      </Modal>
-    </View>
-  );
+                {snack.msg}
+            </Snackbar>
+        </View>
+    );
 }

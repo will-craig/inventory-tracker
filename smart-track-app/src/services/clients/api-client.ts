@@ -91,10 +91,8 @@ export class ApiClient implements IApiClient {
       signal,
     };
 
-    return this.transformOptions(options_)
-      .then((transformedOptions_) => {
-        return this.instance.request(transformedOptions_);
-      })
+    return this.instance
+      .request(options_)
       .catch((_error: any) => {
         if (isAxiosError(_error) && _error.response) {
           return _error.response;
@@ -103,11 +101,7 @@ export class ApiClient implements IApiClient {
         }
       })
       .then((_response: AxiosResponse) => {
-        return this.transformResult(
-          url_,
-          _response,
-          (_response: AxiosResponse) => this.processLogin(_response),
-        );
+        return this.processLogin(_response);
       });
   }
 
@@ -180,10 +174,8 @@ export class ApiClient implements IApiClient {
       signal,
     };
 
-    return this.transformOptions(options_)
-      .then((transformedOptions_) => {
-        return this.instance.request(transformedOptions_);
-      })
+    return this.instance
+      .request(options_)
       .catch((_error: any) => {
         if (isAxiosError(_error) && _error.response) {
           return _error.response;
@@ -192,11 +184,7 @@ export class ApiClient implements IApiClient {
         }
       })
       .then((_response: AxiosResponse) => {
-        return this.transformResult(
-          url_,
-          _response,
-          (_response: AxiosResponse) => this.processGetStock(_response),
-        );
+        return this.processGetStock(_response);
       });
   }
 
@@ -272,10 +260,8 @@ export class ApiClient implements IApiClient {
       signal,
     };
 
-    return this.transformOptions(options_)
-      .then((transformedOptions_) => {
-        return this.instance.request(transformedOptions_);
-      })
+    return this.instance
+      .request(options_)
       .catch((_error: any) => {
         if (isAxiosError(_error) && _error.response) {
           return _error.response;
@@ -284,11 +270,7 @@ export class ApiClient implements IApiClient {
         }
       })
       .then((_response: AxiosResponse) => {
-        return this.transformResult(
-          url_,
-          _response,
-          (_response: AxiosResponse) => this.processAddStock(_response),
-        );
+        return this.processAddStock(_response);
       });
   }
 
@@ -356,10 +338,8 @@ export class ApiClient implements IApiClient {
       signal,
     };
 
-    return this.transformOptions(options_)
-      .then((transformedOptions_) => {
-        return this.instance.request(transformedOptions_);
-      })
+    return this.instance
+      .request(options_)
       .catch((_error: any) => {
         if (isAxiosError(_error) && _error.response) {
           return _error.response;
@@ -368,11 +348,7 @@ export class ApiClient implements IApiClient {
         }
       })
       .then((_response: AxiosResponse) => {
-        return this.transformResult(
-          url_,
-          _response,
-          (_response: AxiosResponse) => this.processGetStockById(_response),
-        );
+        return this.processGetStockById(_response);
       });
   }
 
@@ -458,10 +434,8 @@ export class ApiClient implements IApiClient {
       signal,
     };
 
-    return this.transformOptions(options_)
-      .then((transformedOptions_) => {
-        return this.instance.request(transformedOptions_);
-      })
+    return this.instance
+      .request(options_)
       .catch((_error: any) => {
         if (isAxiosError(_error) && _error.response) {
           return _error.response;
@@ -470,11 +444,7 @@ export class ApiClient implements IApiClient {
         }
       })
       .then((_response: AxiosResponse) => {
-        return this.transformResult(
-          url_,
-          _response,
-          (_response: AxiosResponse) => this.processUpdateStock(_response),
-        );
+        return this.processUpdateStock(_response);
       });
   }
 
@@ -537,10 +507,8 @@ export class ApiClient implements IApiClient {
       signal,
     };
 
-    return this.transformOptions(options_)
-      .then((transformedOptions_) => {
-        return this.instance.request(transformedOptions_);
-      })
+    return this.instance
+      .request(options_)
       .catch((_error: any) => {
         if (isAxiosError(_error) && _error.response) {
           return _error.response;
@@ -549,11 +517,7 @@ export class ApiClient implements IApiClient {
         }
       })
       .then((_response: AxiosResponse) => {
-        return this.transformResult(
-          url_,
-          _response,
-          (_response: AxiosResponse) => this.processDeleteStock(_response),
-        );
+        return this.processDeleteStock(_response);
       });
   }
 
