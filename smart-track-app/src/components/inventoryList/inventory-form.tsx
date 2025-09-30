@@ -1,52 +1,35 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Keyboard, Platform, View } from "react-native";
-import { Button, HelperText, Menu, Text, TextInput } from "react-native-paper";
-import type { InventoryItem } from "../../domain/models/inventory-item";
-import { Unit } from "../../services/clients/api-client";
+// components/inventoryList/inventory-form.tsx
+import React, {useEffect, useMemo, useRef, useState} from "react";
+import {Keyboard, Platform, View} from "react-native";
+import {Button, HelperText, Menu, Text, TextInput, useTheme,} from "react-native-paper";
+import type {InventoryItem} from "../../domain/models/inventory-item";
+import {Unit} from "../../services/clients/api-client";
+import {allUnits} from "../../domain/units";
+
 type Props = {
     initial?: InventoryItem;
     onCancel: () => void;
     onSubmit: (values: Partial<InventoryItem>) => Promise<void> | void;
 };
 
-function toOptions(map: Record<number, string>) {
-    // turn {1:'Part', 2:'Piece', ...} into [{value:1,label:'Part'}, ...]
-    return Object.keys(map)
-        .filter((k) => !Number.isNaN(Number(k)))
-        .map((k) => ({ value: Number(k) as Unit, label: map[Number(k) as any] }));
-}
-function findUnitByLabel(map: Record<number, string>, label: string): Unit | undefined {
-    const entry = Object.entries(map).find(([, v]) => v === label);
-    return entry ? (Number(entry[0]) as Unit) : undefined;
-}
-
 export default function InventoryForm({ initial, onCancel, onSubmit }: Props) {
-    // build options once
-    const unitMap = unitLabel as unknown as Record<number, string>;
-    const UNIT_OPTIONS = useMemo(() => toOptions(unitMap), [unitMap]);
+    const theme = useTheme();
 
-    // default unit = “Part” (falls back to first option if not found)
-    const defaultUnit: Unit =
-        initial?.unit ??
-        findUnitByLabel(unitMap, "Part") ??
-        (UNIT_OPTIONS[0]?.value as Unit);
-
-    // form state
+    // Form state (strings to keep typing easy)
     const [name, setName] = useState("");
     const [quantity, setQuantity] = useState("1");
-    const [unit, setUnit] = useState<Unit>(defaultUnit);
+    const [unit, setUnit] = useState<Unit>(Unit.Part);
     const [expiryDate, setExpiryDate] = useState<string>("");
 
-    // ui state
+    // UI state
     const [busy, setBusy] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
 
-    // refs for fast focusing
-    const nameRef = useRef<any>(null);
+    // refs for Return/Enter focusing
     const qtyRef = useRef<any>(null);
     const dateRef = useRef<any>(null);
 
-    // hydrate on open / edit switch
+    // init / hydrate
     useEffect(() => {
         setName(initial?.name ?? "");
         setQuantity(
@@ -54,22 +37,28 @@ export default function InventoryForm({ initial, onCancel, onSubmit }: Props) {
                 ? String(initial.quantity)
                 : "1"
         );
-        setUnit(initial?.unit ?? defaultUnit);
-        setExpiryDate(
-            initial?.expiryDate ? new Date(initial.expiryDate).toISOString().slice(0, 10) : ""
-        );
+        setUnit(initial?.unit ?? Unit.Part);
+
+        const d = initial?.expiryDate
+            ? new Date(initial.expiryDate).toISOString().slice(0, 10)
+            : "";
+        setExpiryDate(d);
     }, [initial]);
 
     // tiny validation
-    const nameError = !name.trim() ? "Name is required" : "";
-    const qtyError = quantity && !/^\d+$/.test(quantity) ? "Enter a whole number" : "";
-    const dateError =
-        expiryDate && !/^\d{4}-\d{2}-\d{2}$/.test(expiryDate) ? "Use YYYY-MM-DD" : "";
+    const errors = useMemo(() => {
+        const e: Record<string, string> = {};
+        if (!name.trim()) e.name = "Name is required";
+        if (quantity && !/^\d+$/.test(quantity)) e.quantity = "Enter a whole number";
+        if (expiryDate && !/^\d{4}-\d{2}-\d{2}$/.test(expiryDate))
+            e.expiryDate = "Use format YYYY-MM-DD";
+        return e;
+    }, [name, quantity, expiryDate]);
 
-    const hasErrors = !!(nameError || qtyError || dateError);
+    const handleSubmit = async (addAnother: boolean = false) => {
+        // quick guard
+        if (Object.keys(errors).length) return;
 
-    const handleSubmit = async (addAnother = false) => {
-        if (hasErrors) return;
         setBusy(true);
         Keyboard.dismiss();
 
@@ -77,28 +66,35 @@ export default function InventoryForm({ initial, onCancel, onSubmit }: Props) {
             id: initial?.id, // present when editing
             name: name.trim(),
             quantity: quantity ? parseInt(quantity, 10) : undefined,
-            unit, // <- enum value, mapper/toApi can pass straight through
+            unit: unit as any, // your toApi() will map this to the enum (default "Part")
             expiryDate: expiryDate ? new Date(expiryDate + "T00:00:00Z") : undefined,
         };
 
         try {
             await onSubmit(payload);
-            if (addAnother && !initial?.id) {
-                // fast reset for next entry
+            if (addAnother) {
+                // reset fast for the next item
                 setName("");
                 setQuantity("1");
-                setUnit(defaultUnit);
+                setUnit(Unit.Part);
                 setExpiryDate("");
-                setTimeout(() => nameRef.current?.focus?.(), 50);
+                // focus name for speed
+                setTimeout(() => {
+                    (nameRef.current as any)?.focus?.();
+                }, 50);
             }
         } finally {
             setBusy(false);
         }
     };
 
+    const nameRef = useRef<any>(null);
+
     return (
         <View style={{ padding: 16, gap: 12 }}>
-            <Text variant="titleLarge">{initial?.id ? "Edit item" : "Add item"}</Text>
+            <Text variant="titleLarge">
+                {initial?.id ? "Edit item" : "Add item"}
+            </Text>
 
             <TextInput
                 ref={nameRef}
@@ -108,10 +104,10 @@ export default function InventoryForm({ initial, onCancel, onSubmit }: Props) {
                 autoCapitalize="sentences"
                 returnKeyType="next"
                 onSubmitEditing={() => qtyRef.current?.focus?.()}
-                error={!!nameError}
+                error={!!errors.name}
             />
-            <HelperText type="error" visible={!!nameError}>
-                {nameError}
+            <HelperText type="error" visible={!!errors.name}>
+                {errors.name}
             </HelperText>
 
             <TextInput
@@ -119,36 +115,36 @@ export default function InventoryForm({ initial, onCancel, onSubmit }: Props) {
                 label="Quantity"
                 value={quantity}
                 onChangeText={setQuantity}
-                keyboardType={Platform.select({
-                    ios: "number-pad",
-                    android: "numeric",
-                    default: "numeric",
-                })}
+                keyboardType={Platform.select({ ios: "number-pad", android: "numeric", default: "numeric" })}
                 returnKeyType="next"
                 onSubmitEditing={() => dateRef.current?.focus?.()}
-                error={!!qtyError}
+                error={!!errors.quantity}
             />
-            <HelperText type="error" visible={!!qtyError}>
-                {qtyError}
+            <HelperText type="error" visible={!!errors.quantity}>
+                {errors.quantity}
             </HelperText>
 
-            {/* Unit dropdown driven by unitLabel */}
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
+            {/* Unit dropdown */}
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                 <Menu
                     visible={menuOpen}
                     onDismiss={() => setMenuOpen(false)}
                     anchor={
-                        <Button mode="outlined" onPress={() => setMenuOpen(true)} style={{ flex: 1 }}>
-                            Unit: {unitMap[unit] ?? "—"}
+                        <Button
+                            mode="outlined"
+                            onPress={() => setMenuOpen(true)}
+                            style={{ flexGrow: 1 }}
+                        >
+                            Unit: {unit}
                         </Button>
                     }
                 >
-                    {UNIT_OPTIONS.map((opt) => (
+                    {allUnits.map((opt) => (
                         <Menu.Item
-                            key={String(opt.value)}
-                            title={opt.label}
+                            key={opt}
+                            title={opt}
                             onPress={() => {
-                                setUnit(opt.value);
+                                setUnit(opt);
                                 setMenuOpen(false);
                             }}
                         />
@@ -163,10 +159,10 @@ export default function InventoryForm({ initial, onCancel, onSubmit }: Props) {
                 onChangeText={setExpiryDate}
                 placeholder="YYYY-MM-DD (optional)"
                 returnKeyType="done"
-                error={!!dateError}
+                error={!!errors.expiryDate}
             />
-            <HelperText type="error" visible={!!dateError}>
-                {dateError}
+            <HelperText type="error" visible={!!errors.expiryDate}>
+                {errors.expiryDate}
             </HelperText>
 
             {/* Actions */}
@@ -174,18 +170,23 @@ export default function InventoryForm({ initial, onCancel, onSubmit }: Props) {
                 <Button mode="text" onPress={onCancel} disabled={busy}>
                     Cancel
                 </Button>
+                <Button
+                    mode="contained"
+                    onPress={() => handleSubmit(false)}
+                    loading={busy}
+                    disabled={busy || !!errors.name || !!errors.quantity || !!errors.expiryDate}
+                >
+                    Save
+                </Button>
                 {!initial?.id && (
                     <Button
                         mode="contained-tonal"
                         onPress={() => handleSubmit(true)}
-                        disabled={busy || hasErrors}
+                        disabled={busy || !!errors.name || !!errors.quantity || !!errors.expiryDate}
                     >
                         Save & add another
                     </Button>
                 )}
-                <Button mode="contained" onPress={() => handleSubmit(false)} loading={busy} disabled={busy || hasErrors}>
-                    Save
-                </Button>
             </View>
         </View>
     );
