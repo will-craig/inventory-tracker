@@ -1,50 +1,54 @@
-// src/screens/LoginScreen.tsx
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, Alert } from "react-native";
-import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../App";
-import { UseAuth } from "../auth/use-auth";
+import { View, Text, Button, Alert, ActivityIndicator } from "react-native";
+import { useAuth } from "../auth/auth-provider";
 
-type Props = NativeStackScreenProps<RootStackParamList, "Login">;
-
-export default function LoginScreen({ navigation }: Props) {
-  const { login } = UseAuth();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+export default function LoginScreen() {
+  const { isReady, isSignedIn, signIn } = useAuth();
   const [busy, setBusy] = useState(false);
 
-    const onLogin = async () => {
-        setBusy(true);
-        try {
-            await login(username, password);
-            navigation.replace('InventoryList');
-        } catch (e: any) {
-            Alert.alert('Login failed', e?.message ?? 'Error');
-        } finally {
-            setBusy(false);
-        }
-    };
+  const handleLogin = async () => {
+    setBusy(true);
+    try {
+      await signIn();
+      // No manual navigation needed: navigator will swap stacks when isSignedIn flips to true
+    } catch (e: any) {
+      const msg = e?.message ?? "Sign-in failed";
+      Alert.alert("Sign-in error", msg);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (!isReady) {
+    return (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <ActivityIndicator />
+      </View>
+    );
+  }
 
   return (
-    <View style={{ padding: 16, gap: 12 }}>
-      <Text style={{ fontSize: 18, fontWeight: "600" }}>Welcome</Text>
-      <TextInput
-        placeholder="Username"
-        autoCapitalize="none"
-        value={username}
-        onChangeText={setUsername}
-      />
-      <TextInput
-        placeholder="Password"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
+    <View
+      style={{
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 24,
+        gap: 12,
+      }}
+    >
+      <Text style={{ fontSize: 22, fontWeight: "700" }}>Welcome</Text>
+      <Text style={{ opacity: 0.7, marginBottom: 12 }}>
+        Sign in to continue
+      </Text>
+
       <Button
-        title={busy ? "Signing in…" : "Sign in"}
-        onPress={onLogin}
-        disabled={busy}
+        title={busy ? "Signing in…" : "Sign in with Microsoft"}
+        onPress={handleLogin}
+        disabled={busy || isSignedIn}
       />
+
+      {busy && <ActivityIndicator style={{ marginTop: 12 }} />}
     </View>
   );
 }

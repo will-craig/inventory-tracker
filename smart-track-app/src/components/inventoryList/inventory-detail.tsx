@@ -4,7 +4,7 @@ import { View, Text, ActivityIndicator } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../App";
 import { InventoryItem } from "../../domain/models/inventory-item";
-import { InventoryService } from "../../services/inventory.service";
+import { InventoryService } from "../../services/inventory-service";
 import { formatQty } from "../../domain/units";
 
 type Props = NativeStackScreenProps<RootStackParamList, "InventoryDetail">;

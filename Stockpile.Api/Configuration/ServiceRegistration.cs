@@ -1,7 +1,7 @@
 using System.Text;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.Identity.Web;
 using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
 using Stockpile.Api.Configuration.Models;
@@ -17,7 +17,6 @@ public static class ServiceRegistration
         var services = builder.Services;
         var configuration = builder.Configuration;
         services.Configure<DatabaseConfig>(configuration.GetSection("DatabaseConfig"));
-        services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
 
         services.AddSingleton<IMongoClient>(sp =>
         {
@@ -38,23 +37,9 @@ public static class ServiceRegistration
         
         services.AddEndpointsApiExplorer();
         services.AddHttpContextAccessor();
+        // Use Microsoft Identity Web for Entra ID authentication
         services.AddAuthentication("Bearer")
-            .AddJwtBearer("Bearer", options =>
-            {
-                var jwtSettings = configuration.GetSection("JwtSettings").Get<JwtSettings>()!;
-                var key = Encoding.ASCII.GetBytes(jwtSettings.Secret);
-
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateLifetime = true,
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = jwtSettings.Issuer,
-                    ValidAudience = jwtSettings.Audience,
-                    IssuerSigningKey = new SymmetricSecurityKey(key)
-                };
-            });
+            .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
         services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc("v1", new() { Title = "Fridge Tracker API", Version = "v1" });
@@ -104,4 +89,3 @@ public static class ServiceRegistration
         return builder;
     }
 }
-

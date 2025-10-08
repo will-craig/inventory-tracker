@@ -1,65 +1,31 @@
-// App.tsx
-import * as React from 'react';
-import { useEffect, useState } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import InventoryList from './components/inventoryList/inventory-list';
-import InventoryDetailScreen from './components/inventoryList/inventory-detail';
-import LoginScreen from './components/login-screen';
-import { AuthStore } from './auth/auth-store';
-import { ActivityIndicator, View } from 'react-native';
-import {MD3LightTheme, PaperProvider} from "react-native-paper";
+import React, { useState } from 'react';
+import { View, Text, Button, Alert, ActivityIndicator } from 'react-native';
+import { signIn } from './services/auth-service';
 
-export type RootStackParamList = {
-  Login: undefined;
-  InventoryList: undefined;
-  InventoryDetail: { id: string };
-};
+export default function LoginScreen({ onSignedIn }: { onSignedIn: () => void }) {
+  const [busy, setBusy] = useState(false);
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
-
-export default function App() {
-  const [ready, setReady] = useState(false);
-  const [hasToken, setHasToken] = useState(false);
-
-  useEffect(() => {
-    (async () => {
-      // load token from AsyncStorage into memory
-      const token = await AuthStore.load();
-      setHasToken(!!token);
-      setReady(true);
-    })();
-  }, []);
-
-  if (!ready) {
-    return (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <ActivityIndicator />
-        </View>
-    );
-  }
+  const handleLogin = async () => {
+    setBusy(true);
+    try {
+      await signIn();
+      onSignedIn();
+    } catch (e: any) {
+      const msg = e?.message ?? 'Sign-in failed';
+      Alert.alert('Sign-in error', msg);
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
-      <PaperProvider theme={MD3LightTheme}>
-        <NavigationContainer>
-          <Stack.Navigator initialRouteName={hasToken ? 'InventoryList' : 'Login'}>
-            <Stack.Screen
-                name="Login"
-                component={LoginScreen}
-                options={{ title: 'Sign in' }}
-            />
-            <Stack.Screen
-                name="InventoryList"
-                component={InventoryList}
-                options={{ title: 'Inventory' }}
-            />
-            <Stack.Screen
-                name="InventoryDetail"
-                component={InventoryDetailScreen}
-                options={{ title: 'Item' }}
-            />
-          </Stack.Navigator>
-        </NavigationContainer>
-      </PaperProvider>
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
+      <Text style={{ fontSize: 22, fontWeight: '700' }}>Welcome</Text>
+      <Text style={{ opacity: 0.7, marginBottom: 12 }}>Sign in to continue</Text>
+
+      <Button title={busy ? 'Signing in…' : 'Sign in with Microsoft'} onPress={handleLogin} disabled={busy} />
+
+      {busy && <ActivityIndicator style={{ marginTop: 12 }} />}
+    </View>
   );
 }
