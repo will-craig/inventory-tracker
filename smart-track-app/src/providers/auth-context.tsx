@@ -1,4 +1,4 @@
-import {createContext, PropsWithChildren, useEffect, useState} from 'react';
+import { createContext, PropsWithChildren, useEffect, useState } from 'react';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SplashScreen } from 'expo-router';
 

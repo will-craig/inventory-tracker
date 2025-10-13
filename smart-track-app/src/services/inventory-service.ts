@@ -1,4 +1,4 @@
-import { api } from "../app/(protected)/index";
+import { api } from "../services/api";
 import { InventoryItem } from "../domain/models/inventory-item";
 import { fromApi, toApi } from "../adapters/InventoryItemMapper";
 

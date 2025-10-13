@@ -149,6 +149,7 @@ export async function getAccessToken(): Promise<string | null> {
     return tokens.accessToken;
   } catch (e) {
     // Refresh failed; clear tokens
+    console.error("Token refresh failed:", e);
     await saveTokens(null);
     return null;
   }
