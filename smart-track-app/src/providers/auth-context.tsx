@@ -1,6 +1,8 @@
-import { useRouter } from "expo-router";
 import {createContext, PropsWithChildren, useEffect, useState} from 'react';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { SplashScreen } from 'expo-router';
+
+SplashScreen.preventAutoHideAsync();
 
 type AuthState = {
   //accessToken: string | null;
@@ -11,6 +13,7 @@ type AuthState = {
 };
 
 const authStorageKey = 'auth-key';
+
 export const AuthContext = createContext<AuthState>({
     //accessToken: null,
     isAuthenticated: false, 
@@ -19,36 +22,36 @@ export const AuthContext = createContext<AuthState>({
     signOut: async () => {}
 });
 
-export function AuthProvider({children} : PropsWithChildren) {
+export function AuthProvider({children}: PropsWithChildren) {
     const [isReady, setIsReady] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const router = useRouter();
-    
+
     const storeAuthState = async (isLoggedIn: boolean) => {
         try {
             const value = JSON.stringify({ isAuthenticated: isLoggedIn });
             await AsyncStorage.setItem(authStorageKey, value);
-            
         } catch (error) {
             console.error('Failed to store auth state', error);
         }
-    }
-    
+    };
+
     const signIn = async () => {
-        // perform sign-in logic here, e.g. call an API, get a token, etc.
+        // Simulate waiting for a real authentication
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        console.log("Signing in...");
         setIsAuthenticated(true);
         await storeAuthState(true);
-    }
+    };
+
     const signOut = async () => {
-        // perform sign-out logic here, e.g. clear token, call an API, etc.
+        console.log("Signing out...");
         setIsAuthenticated(false);
         await storeAuthState(false);
-        
-    }
-    
+    };
+
     useEffect(() => {
         const loadAuthState = async () => {
-            try {  
+            try {
                 const storedValue = await AsyncStorage.getItem(authStorageKey);
                 if (storedValue) {
                     const parsed = JSON.parse(storedValue);
@@ -61,10 +64,16 @@ export function AuthProvider({children} : PropsWithChildren) {
         };
         loadAuthState();
     }, []);
-    
+
+    useEffect(() => {
+        if (isReady) {
+        SplashScreen.hideAsync();
+        }
+    }, [isReady]);
+
     return (
         <AuthContext.Provider value={{isAuthenticated, isReady, signIn, signOut}}>
             {children}
         </AuthContext.Provider>
-    )
+    );
 }
