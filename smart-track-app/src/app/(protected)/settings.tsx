@@ -12,7 +12,7 @@ export default function SettingsScreen() {
         text: "Sign out",
         style: "destructive",
         onPress: async () => {
-          await signOut(); 
+          await signOut();
         },
       },
     ]);

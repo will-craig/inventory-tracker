@@ -47,13 +47,13 @@ function makeRedirectUri() {
   // In Expo Go/dev, proxy is used on web; for native, custom scheme
   return AuthSession.makeRedirectUri({
     scheme: entraConfig.scheme,
-    // If you use Expo Router in web, set useProxy true for web; for native use direct scheme
-    useProxy: Platform.OS === "web",
   });
 }
 
 export async function signInAsync(): Promise<boolean> {
-  const discovery = await AuthSession.fetchDiscoveryAsync(entraConfig.discoveryEndpoint);
+  const discovery = await AuthSession.fetchDiscoveryAsync(
+    entraConfig.discoveryEndpoint,
+  );
 
   const redirectUri = makeRedirectUri();
 
@@ -68,7 +68,7 @@ export async function signInAsync(): Promise<boolean> {
 
   await request.makeAuthUrlAsync(discovery);
 
-  const result = await request.promptAsync(discovery, { useProxy: Platform.OS === "web" });
+  const result = await request.promptAsync(discovery);
   if (result.type !== "success" || !result.params?.code) {
     return false;
   }
@@ -124,7 +124,9 @@ export async function getAccessToken(): Promise<string | null> {
   // Attempt refresh if available
   if (!tokens.refreshToken) return null;
 
-  const discovery = await AuthSession.fetchDiscoveryAsync(entraConfig.discoveryEndpoint);
+  const discovery = await AuthSession.fetchDiscoveryAsync(
+    entraConfig.discoveryEndpoint,
+  );
   try {
     const refreshed = await AuthSession.refreshAsync(
       {

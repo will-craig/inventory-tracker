@@ -1,15 +1,29 @@
-import { registerRootComponent } from 'expo';
-import { http } from '../../services/clients/http';
-import {ApiClient} from "../../services/clients/api-client";
-import { View, Text } from 'react-native';
-
-//export const api = new ApiClient(http.defaults.baseURL!, http);
+import { View, Text } from "react-native";
+import { Link } from "expo-router";
+import { Button } from "react-native-paper";
 
 export default function LandingPage() {
   return (
-    <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-      <Text style={{ fontSize: 24, fontWeight: "bold" }}>Welcome to Smart Track!</Text>
-      <Text style={{ marginTop: 12 }}>You are now logged in.</Text>
+    <View
+      style={{
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 24,
+        gap: 16,
+      }}
+    >
+      <Text style={{ fontSize: 24, fontWeight: "bold" }}>
+        Welcome to Smart Track!
+      </Text>
+      <Text style={{ marginTop: 8, opacity: 0.8, textAlign: "center" }}>
+        Manage your inventory with ease.
+      </Text>
+      <Link href="/(protected)/inventory" asChild>
+        <Button mode="contained" style={{ marginTop: 16 }}>
+          View Inventory
+        </Button>
+      </Link>
     </View>
   );
 }

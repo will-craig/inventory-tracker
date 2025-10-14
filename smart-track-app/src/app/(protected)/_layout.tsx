@@ -2,23 +2,23 @@ import { useContext } from "react";
 import { AuthContext } from "../../providers/auth-context";
 import { Link, Stack, useRouter } from "expo-router";
 import { View, Button } from "react-native";
-import { Text, TouchableOpacity} from "react-native";
+import { Text, TouchableOpacity } from "react-native";
 
 export default function ProtectedLayout() {
-    const authState = useContext(AuthContext);
-    const router = useRouter();
+  const authState = useContext(AuthContext);
+  const router = useRouter();
 
-    function HeaderSettingsButton() {
+  function HeaderSettingsButton() {
     return (
-        <Link href="/(protected)/settings" asChild>
+      <Link href="/(protected)/settings" asChild>
         <TouchableOpacity style={{ paddingHorizontal: 12 }}>
-            <Text>Settings</Text>
+          <Text>Settings</Text>
         </TouchableOpacity>
-        </Link>
+      </Link>
     );
-    }
+  }
 
-    return (
+  return (
     <Stack
       screenOptions={{
         headerRight: () => <HeaderSettingsButton />, // persistent shortcut
@@ -29,5 +29,5 @@ export default function ProtectedLayout() {
       <Stack.Screen name="index" options={{ title: "Home" }} />
       <Stack.Screen name="settings" options={{ title: "Settings" }} />
     </Stack>
-    );
+  );
 }
