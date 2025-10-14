@@ -4,15 +4,18 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { InventoryService } from "../../../services/inventory-service";
 import type { InventoryItem } from "../../../domain/models/inventory-item";
 import { allUnits, unitLabel } from "../../../domain/units";
-import { TextInput, Button, Text } from "react-native-paper";
+import { TextInput, Button, Text, useTheme } from "react-native-paper";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
+import { SettingsContext } from "../../providers/settings-context";
 
 export default function InventoryDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const settingsCtx = React.useContext(SettingsContext);
+  const theme = useTheme();
   const [item, setItem] = useState<InventoryItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -54,31 +57,40 @@ export default function InventoryDetailScreen() {
 
   const onDelete = async () => {
     if (!item?.id) return;
-    Alert.alert("Delete Item", "Are you sure you want to delete this item?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await InventoryService.delete(item.id!);
-            router.back();
-          } catch (e) {
-            Alert.alert("Error", "Failed to delete item");
-          }
-        },
-      },
-    ]);
+
+    const performDelete = async () => {
+      try {
+        await InventoryService.delete(item.id!);
+        router.back();
+      } catch (e) {
+        Alert.alert("Error", "Failed to delete item");
+      }
+    };
+
+    if (settingsCtx.settings.confirmDelete) {
+      Alert.alert("Delete Item", "Are you sure you want to delete this item?", [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", style: "destructive", onPress: performDelete },
+      ]);
+    } else {
+      await performDelete();
+    }
   };
 
   if (loading || !item) {
     return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+      <View
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: theme.colors.background,
+        }}
+      >
         <Text>Loading…</Text>
       </View>
     );
   }
-
 
   const onDateChange = (_: DateTimePickerEvent, date?: Date) => {
     setShowDate(false);
@@ -86,7 +98,7 @@ export default function InventoryDetailScreen() {
   };
 
   return (
-    <View style={{ flex: 1, padding: 16, gap: 12 }}>
+    <View style={{ flex: 1, padding: 16, gap: 12, backgroundColor: theme.colors.background }}>
       <TextInput
         label="Name"
         value={item.name}
@@ -142,7 +154,7 @@ export default function InventoryDetailScreen() {
       )}
 
       <View style={{ flexDirection: "row", gap: 12, marginTop: 16 }}>
-        <Button mode="contained" loading={saving} onPress={onSave}>
+        <Button testID="save-button" mode="contained" loading={saving} onPress={onSave}>
           Save
         </Button>
         <Button mode="outlined" onPress={() => router.back()} disabled={saving}>
@@ -150,6 +162,7 @@ export default function InventoryDetailScreen() {
         </Button>
         <View style={{ flex: 1 }} />
         <Button
+          testID="delete-button"
           mode="contained-tonal"
           onPress={onDelete}
           disabled={!item.id || saving}

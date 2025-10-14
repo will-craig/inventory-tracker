@@ -2,7 +2,6 @@ import { createContext, PropsWithChildren, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SplashScreen } from "expo-router";
 
-SplashScreen.preventAutoHideAsync();
 
 type AuthState = {
   //accessToken: string | null;
@@ -60,6 +59,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       } catch (error) {
         console.error("Failed to load auth state", error);
       }
+      SplashScreen.preventAutoHideAsync(); // Call it here
       setIsReady(true);
     };
     loadAuthState();
