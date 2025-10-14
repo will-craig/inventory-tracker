@@ -1,11 +1,14 @@
 import React, { useState } from "react";
-import { View, Alert } from "react-native";
+import { View, Alert, Platform } from "react-native";
 import { useRouter } from "expo-router";
 import { InventoryService } from "../../../services/inventory-service";
 import type { InventoryItem } from "../../../domain/models/inventory-item";
 import { allUnits, unitLabel } from "../../../domain/units";
 import { TextInput, Button, Text } from "react-native-paper";
 import { Picker } from "@react-native-picker/picker";
+import DateTimePicker, {
+  DateTimePickerEvent,
+} from "@react-native-community/datetimepicker";
 
 export default function InventoryCreateScreen() {
   const router = useRouter();
@@ -15,6 +18,7 @@ export default function InventoryCreateScreen() {
     unit: (allUnits[0] as any) ?? "None",
   });
   const [saving, setSaving] = useState(false);
+  const [showDate, setShowDate] = useState(false);
 
   const onSave = async () => {
     if (!item.name?.trim()) {
@@ -30,6 +34,11 @@ export default function InventoryCreateScreen() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const onDateChange = (_: DateTimePickerEvent, date?: Date) => {
+    setShowDate(false);
+    if (date) setItem({ ...item, expiryDate: date });
   };
 
   return (
@@ -59,16 +68,33 @@ export default function InventoryCreateScreen() {
         </Picker>
       </View>
 
-      <TextInput
-        label="Expiry (YYYY-MM-DD)"
-        placeholder="Optional"
-        value={
-          item.expiryDate ? item.expiryDate.toISOString().slice(0, 10) : ""
-        }
-        onChangeText={(t) =>
-          setItem({ ...item, expiryDate: t ? new Date(t) : undefined })
-        }
-      />
+      {Platform.OS === "web" ? (
+        <TextInput
+          label="Expiry (YYYY-MM-DD)"
+          placeholder="Optional"
+          value={
+            item.expiryDate ? item.expiryDate.toISOString().slice(0, 10) : ""
+          }
+          onChangeText={(t) =>
+            setItem({ ...item, expiryDate: t ? new Date(t) : undefined })
+          }
+        />
+      ) : (
+        <View>
+          <Text style={{ marginBottom: 6 }}>Expiry</Text>
+          <Button mode="outlined" onPress={() => setShowDate(true)}>
+            {item.expiryDate ? item.expiryDate.toDateString() : "Set date"}
+          </Button>
+          {showDate && (
+            <DateTimePicker
+              value={item.expiryDate ?? new Date()}
+              mode="date"
+              display={Platform.OS === "ios" ? "compact" : "calendar"}
+              onChange={onDateChange}
+            />
+          )}
+        </View>
+      )}
 
       <View style={{ flexDirection: "row", gap: 12, marginTop: 16 }}>
         <Button mode="contained" loading={saving} onPress={onSave}>

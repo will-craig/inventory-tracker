@@ -3,12 +3,20 @@ import { View } from "react-native";
 import { useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { InventoryService } from "../../../services/inventory-service";
-import { List, ActivityIndicator, FAB, Text } from "react-native-paper";
+import {
+  List,
+  ActivityIndicator,
+  FAB,
+  Text,
+  Searchbar,
+} from "react-native-paper";
 import type { InventoryItem } from "../../../domain/models/inventory-item";
 import { formatQty } from "../../../domain/units";
 
 export default function InventoryListScreen() {
   const router = useRouter();
+  const [query, setQuery] = React.useState("");
+
   const {
     data: items,
     isLoading,
@@ -17,6 +25,12 @@ export default function InventoryListScreen() {
     queryKey: ["inventory"],
     queryFn: () => InventoryService.list(),
   });
+
+  const filtered = React.useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return items ?? [];
+    return (items ?? []).filter((x) => x.name.toLowerCase().includes(q));
+  }, [items, query]);
 
   if (isLoading) {
     return (
@@ -45,9 +59,17 @@ export default function InventoryListScreen() {
 
   return (
     <View style={{ flex: 1 }}>
+      <Searchbar
+        placeholder="Search inventory"
+        value={query}
+        onChangeText={setQuery}
+        style={{ margin: 12, marginBottom: 0 }}
+        autoCorrect={false}
+        autoCapitalize="none"
+      />
       <List.Section>
         <List.Subheader>Inventory</List.Subheader>
-        {(items ?? []).map((item) => (
+        {filtered.map((item) => (
           <List.Item
             key={item.id ?? item.name}
             title={item.name}
@@ -56,9 +78,9 @@ export default function InventoryListScreen() {
             right={(props) => <List.Icon {...props} icon="chevron-right" />}
           />
         ))}
-        {(items ?? []).length === 0 && (
+        {filtered.length === 0 && (
           <View style={{ padding: 24 }}>
-            <Text>No items yet.</Text>
+            <Text>No items match your search.</Text>
           </View>
         )}
       </List.Section>
