@@ -2,7 +2,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using MongoDB.Driver;
 using Stockpile.Api.Configuration.Models;
 using Stockpile.Api.Services;
@@ -53,17 +53,11 @@ public static class ServiceRegistration
                 BearerFormat = "JWT",
                 Description = "Please enter your token in the format: Bearer {your_token}"
             });
-            c.AddSecurityRequirement(new OpenApiSecurityRequirement
+            c.AddSecurityRequirement(document => new OpenApiSecurityRequirement
             {
                 {
-                    new OpenApiSecurityScheme
-                    {
-                        Reference = new OpenApiReference
-                        {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = "Bearer"
-                        }
-                    }, new string[]{}
+                    new OpenApiSecuritySchemeReference("Bearer", document, null),
+                    []
                 }
             });
         });

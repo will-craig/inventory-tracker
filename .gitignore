@@ -91,3 +91,5 @@ coverage/
 # Misc
 .env
 .env.*
+/AGENTS.md
+
