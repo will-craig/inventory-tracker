@@ -20,6 +20,8 @@
     build:
       context: .
       dockerfile: Stockpile.Api/Dockerfile
+    profiles:
+      - api
     ports:
       - "8080:8080"
     environment:
@@ -30,9 +32,12 @@
     depends_on:
       InventoryDatabase:
         condition: service_healthy
+    restart: unless-stopped
 
   mongo-express:
     image: mongo-express:latest
+    profiles:
+      - tools
     restart: always
     ports:
       - "8081:8081"

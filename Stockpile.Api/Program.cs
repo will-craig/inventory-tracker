@@ -1,6 +1,7 @@
-using MongoDB.Driver;
 using Stockpile.Api.Configuration;
-using Stockpile.DAL.Repositories;
+using Stockpile.Api.Services;
+
+var initializeDatabaseOnly = args.Contains("--initialize-database", StringComparer.OrdinalIgnoreCase);
 
 var app = WebApplication
     .CreateBuilder(args)
@@ -8,16 +9,12 @@ var app = WebApplication
     .Build()
     .ConfigureMiddleware();
 
-await InitializeDatabaseAsync();
-await app.RunAsync();
-
-async Task InitializeDatabaseAsync()
+var databaseInitializer = app.Services.GetRequiredService<IDatabaseInitializer>();
+if (initializeDatabaseOnly)
 {
-    var serviceProvider = app.Services;
-    using var scope = serviceProvider.CreateScope();
-    var scopedProvider = scope.ServiceProvider;
-    var db = scopedProvider.GetRequiredService<IMongoDatabase>();
-    SeedData.Initialize(db);
-    var inventoryRepository = scopedProvider.GetRequiredService<IInventoryItemRepository>();
-    await inventoryRepository.EnsureAgentIndexesAsync();
+    await databaseInitializer.InitializeAsync();
+    return;
 }
+
+await databaseInitializer.InitializeOnStartupAsync();
+await app.RunAsync();

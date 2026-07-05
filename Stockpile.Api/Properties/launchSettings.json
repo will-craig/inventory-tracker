@@ -10,6 +10,16 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
+    },
+    "AgentLocal": {
+      "commandName": "Project",
+      "launchBrowser": false,
+      "dotnetRunMessages": true,
+      "applicationUrl": "http://127.0.0.1:8080",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "AgentLocal",
+        "ASPNETCORE_URLS": "http://127.0.0.1:8080"
+      }
     }
   }
 }

@@ -18,6 +18,7 @@ public static class ServiceRegistration
         var services = builder.Services;
         var configuration = builder.Configuration;
         services.Configure<DatabaseConfig>(configuration.GetSection("DatabaseConfig"));
+        services.Configure<DatabaseInitializationConfig>(configuration.GetSection(DatabaseInitializationConfig.SectionName));
         services.Configure<InventoryAgentConfig>(configuration.GetSection(InventoryAgentConfig.SectionName));
         services.Configure<InventoryDigestConfig>(configuration.GetSection(InventoryDigestConfig.SectionName));
 
@@ -31,7 +32,6 @@ public static class ServiceRegistration
         {
             var client = sp.GetRequiredService<IMongoClient>();
             var config = sp.GetRequiredService<IOptions<DatabaseConfig>>().Value;
-            Console.WriteLine($"Database Name: {config.DatabaseName}");
             return client.GetDatabase(config.DatabaseName);
         });
 
@@ -40,12 +40,23 @@ public static class ServiceRegistration
         
         services.AddEndpointsApiExplorer();
         services.AddHttpContextAccessor();
-        // Use Microsoft Identity Web for Entra ID authentication
-        services.AddAuthentication("Bearer")
-            .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
-        services.AddAuthentication()
-            .AddScheme<AuthenticationSchemeOptions, InventoryAgentAuthenticationHandler>(
-                InventoryAgentConfig.AuthenticationScheme, _ => { });
+
+        var azureAdEnabled = configuration.GetValue("AzureAd:Enabled", true);
+        if (azureAdEnabled)
+        {
+            // Use Microsoft Identity Web for Entra ID authentication
+            services.AddAuthentication("Bearer")
+                .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
+            services.AddAuthentication()
+                .AddScheme<AuthenticationSchemeOptions, InventoryAgentAuthenticationHandler>(
+                    InventoryAgentConfig.AuthenticationScheme, _ => { });
+        }
+        else
+        {
+            services.AddAuthentication(InventoryAgentConfig.AuthenticationScheme)
+                .AddScheme<AuthenticationSchemeOptions, InventoryAgentAuthenticationHandler>(
+                    InventoryAgentConfig.AuthenticationScheme, _ => { });
+        }
 
         services.AddAuthorization(options =>
         {
@@ -66,22 +77,25 @@ public static class ServiceRegistration
             if (File.Exists(xmlPath))
                 c.IncludeXmlComments(xmlPath);
 
-            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            if (azureAdEnabled)
             {
-                In = ParameterLocation.Header,
-                Name = "Authorization",
-                Type = SecuritySchemeType.ApiKey,
-                Scheme = "Bearer",
-                BearerFormat = "JWT",
-                Description = "Please enter your token in the format: Bearer {your_token}"
-            });
-            c.AddSecurityRequirement(document => new OpenApiSecurityRequirement
-            {
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
-                    new OpenApiSecuritySchemeReference("Bearer", document, null),
-                    []
-                }
-            });
+                    In = ParameterLocation.Header,
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    Description = "Please enter your token in the format: Bearer {your_token}"
+                });
+                c.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecuritySchemeReference("Bearer", document, null),
+                        []
+                    }
+                });
+            }
 
             c.AddSecurityDefinition(InventoryAgentConfig.AuthenticationScheme, new OpenApiSecurityScheme
             {
@@ -117,6 +131,7 @@ public static class ServiceRegistration
         services.AddScoped<IInventoryService, InventoryService>();
         services.AddScoped<IUserProfileService, UserProfileService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddScoped<IDatabaseInitializer, DatabaseInitializer>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IInventoryItemRepository, InventoryItemRepository>();
         services.AddScoped<IUserProfileRepository, UserProfileRepository>();

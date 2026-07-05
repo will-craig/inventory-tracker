@@ -2,7 +2,7 @@
 Collection:
   - UserProfile:
       Email: demo1@user.com
-      Username: DemoUser1
+      Username: LocalUser
       UserRole: Admin
     Inventory:
       - Name: Eggs

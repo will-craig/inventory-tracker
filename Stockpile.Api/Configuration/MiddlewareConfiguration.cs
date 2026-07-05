@@ -1,16 +1,31 @@
-using MongoDB.Driver;
-
 namespace Stockpile.Api.Configuration;
 
 public static class MiddlewareConfiguration
 {
     public static WebApplication ConfigureMiddleware(this WebApplication app)
     {
-        if (app.Environment.IsDevelopment())
+        var swaggerEnabled = app.Configuration.GetValue("Swagger:Enabled", app.Environment.IsDevelopment());
+        var swaggerJsonEnabled = app.Configuration.GetValue("Swagger:JsonEnabled", swaggerEnabled);
+        var swaggerUiEnabled = app.Configuration.GetValue("Swagger:UiEnabled", swaggerEnabled);
+        var isAgentLocal = app.Environment.IsEnvironment("AgentLocal");
+
+        if (swaggerJsonEnabled)
         {
             app.UseSwagger();
+        }
+
+        if (swaggerUiEnabled)
+        {
             app.UseSwaggerUI();
+        }
+
+        if (app.Environment.IsDevelopment())
+        {
             app.UseCors("AllowDevelopment");
+        }
+        else if (isAgentLocal)
+        {
+            app.UseCors("AllowConfiguredOrigins");
         }
         else
         {
@@ -18,12 +33,12 @@ public static class MiddlewareConfiguration
             app.UseHttpsRedirection();
             app.UseCors("AllowConfiguredOrigins");
         }
-        app.UseHttpsRedirection();
+
         app.UseAuthentication();
         app.UseAuthorization();
+        app.MapStockpileHealthChecks();
         app.MapControllers();
         return app;
     }
 }
-
 
