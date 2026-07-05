@@ -4,9 +4,6 @@ using Stockpile.Domain.Models;
 
 namespace Stockpile.Api.Services;
 
-/// <summary>
-/// TODO: This logic to be migrated to Commands and Queries when moving to a CQRS pattern
-/// </summary>
 public interface IInventoryService
 {
     Task<InventoryItem?> GetInventoryItemAsync(string id);
