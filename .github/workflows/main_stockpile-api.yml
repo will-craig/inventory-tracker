@@ -3,11 +3,10 @@
 
 name: Build and deploy ASP.Net Core app to Azure Web App - stockpile-api
 
+# Deployment is temporarily disabled. Restore the push/workflow_dispatch triggers
+# below when the Azure deploy pipeline should run again.
 on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+ workflow_call:
 
 jobs:
   build:
