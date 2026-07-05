@@ -40,6 +40,15 @@
       "useTransformResultMethod": false,
       "generateDtoTypes": true,
       "operationGenerationMode": "MultipleClientsFromOperationId",
+      "includedOperationIds": [
+        "Login",
+        "GetStock",
+        "GetStockById",
+        "AddStock",
+        "UpdateStock",
+        "DeleteStock"
+      ],
+      "excludedOperationIds": [],
       "markOptionalProperties": true,
       "generateCloneMethod": false,
       "typeStyle": "Class",
@@ -49,7 +58,15 @@
       "extendedClasses": [],
       "extensionCode": null,
       "generateDefaultValues": true,
-      "excludedTypeNames": [],
+      "excludedTypeNames": [
+        "InventoryAgentHintResponse",
+        "InventoryAgentItemResponse",
+        "InventoryAgentQueryResponse",
+        "InventoryAgentSort",
+        "InventoryDigestCountsResponse",
+        "InventoryDigestResponse",
+        "InventoryItemUrgency"
+      ],
       "excludedParameterNames": [],
       "handleReferences": false,
       "generateTypeCheckFunctions": false,

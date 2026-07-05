@@ -44,7 +44,7 @@ public class InventoryAgentAuthenticationHandler(
         {
             new Claim(ClaimTypes.NameIdentifier, config.UserId),
             new Claim(ClaimTypes.Name, config.Username),
-            new Claim(ClaimTypes.Role, UserRole.User.ToString())
+            new Claim(ClaimTypes.Role, nameof(UserRole.User))
         };
 
         var identity = new ClaimsIdentity(claims, InventoryAgentConfig.AuthenticationScheme);
