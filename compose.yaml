@@ -1,9 +1,6 @@
-﻿version: '3.9'
-
-services:
+﻿services:
   InventoryDatabase:
     image: mongo:latest
-    container_name: inventory_db
     ports:
       - "27017:27017"
     environment:
@@ -23,11 +20,11 @@ services:
     build:
       context: .
       dockerfile: Stockpile.Api/Dockerfile
-    container_name: stockpile_api
     ports:
       - "8080:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
       DatabaseConfig__ConnectionString: mongodb://admin:secret@InventoryDatabase:27017/?authSource=admin
       DatabaseConfig__DatabaseName: InventoryDatabase
     depends_on:
@@ -36,10 +33,9 @@ services:
 
   mongo-express:
     image: mongo-express:latest
-    container_name: mongo_express
     restart: always
     ports:
-      - "8081:8081"  # Exposes it on localhost:8081
+      - "8081:8081"
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: admin
       ME_CONFIG_MONGODB_ADMINPASSWORD: secret

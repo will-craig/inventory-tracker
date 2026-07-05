@@ -9,4 +9,9 @@ public record InventoryItemResponse
     public float Quantity { get; set; }
     public Unit Unit { get; set; }
     public DateTime? ExpiryDate { get; set; }
+    public string? Category { get; set; }
+    public string? Location { get; set; }
+    public DateTime? PurchasedDate { get; set; }
+    public DateTime? OpenedDate { get; set; }
+    public string? Notes { get; set; }
 }

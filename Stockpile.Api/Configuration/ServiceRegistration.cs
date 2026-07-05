@@ -1,5 +1,6 @@
-using System.Text;
 using System.Text.Json.Serialization;
+using System.Reflection;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
 using Microsoft.OpenApi;
@@ -17,6 +18,8 @@ public static class ServiceRegistration
         var services = builder.Services;
         var configuration = builder.Configuration;
         services.Configure<DatabaseConfig>(configuration.GetSection("DatabaseConfig"));
+        services.Configure<InventoryAgentConfig>(configuration.GetSection(InventoryAgentConfig.SectionName));
+        services.Configure<InventoryDigestConfig>(configuration.GetSection(InventoryDigestConfig.SectionName));
 
         services.AddSingleton<IMongoClient>(sp =>
         {
@@ -40,10 +43,29 @@ public static class ServiceRegistration
         // Use Microsoft Identity Web for Entra ID authentication
         services.AddAuthentication("Bearer")
             .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
+        services.AddAuthentication()
+            .AddScheme<AuthenticationSchemeOptions, InventoryAgentAuthenticationHandler>(
+                InventoryAgentConfig.AuthenticationScheme, _ => { });
+
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy(InventoryAgentConfig.PolicyName, policy =>
+            {
+                policy.AuthenticationSchemes.Add(InventoryAgentConfig.AuthenticationScheme);
+                policy.RequireAuthenticatedUser();
+            });
+        });
+        
         services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc("v1", new() { Title = "Fridge Tracker API", Version = "v1" });
             c.EnableAnnotations();
+            c.DocumentFilter<InventoryAgentSecurityOperationFilter>();
+            var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+            if (File.Exists(xmlPath))
+                c.IncludeXmlComments(xmlPath);
+
             c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 In = ParameterLocation.Header,
@@ -60,18 +82,36 @@ public static class ServiceRegistration
                     []
                 }
             });
+
+            c.AddSecurityDefinition(InventoryAgentConfig.AuthenticationScheme, new OpenApiSecurityScheme
+            {
+                In = ParameterLocation.Header,
+                Name = InventoryAgentConfig.HeaderName,
+                Type = SecuritySchemeType.ApiKey,
+                Scheme = InventoryAgentConfig.AuthenticationScheme,
+                Description = "Inventory agent API key. Send the raw API key in the X-Inventory-Agent-Key header."
+            });
         });
         
-        builder.Services.AddCors(options =>
+        services.AddCors(options =>
         {
-            options.AddPolicy(name: "AllowAny",
-                policy =>
-                {
-                    policy.SetIsOriginAllowed(_ => true) // dev only
-                        .AllowAnyHeader()
-                        .AllowAnyMethod()
-                        .AllowCredentials();
-                });
+            options.AddPolicy("AllowDevelopment", policy =>
+                policy.SetIsOriginAllowed(_ => true)
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials());
+
+            options.AddPolicy("AllowConfiguredOrigins", policy =>
+            {
+                var origins = configuration
+                    .GetSection("Cors:AllowedOrigins")
+                    .Get<string[]>() ?? [];
+
+                policy.WithOrigins(origins)
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+            });
         });
         
         services.AddScoped<IInventoryService, InventoryService>();

@@ -23,6 +23,11 @@ public static class InventoryItemMapper
             Quantity = request.Quantity,
             Unit = request.Unit,
             ExpiryDate = request.ExpiryDate,
+            Category = request.Category,
+            Location = request.Location,
+            PurchasedDate = request.PurchasedDate,
+            OpenedDate = request.OpenedDate,
+            Notes = request.Notes,
             UserId = userId,
             Username = username
         };
@@ -43,6 +48,11 @@ public static class InventoryItemMapper
             Quantity = request.Quantity,
             Unit = request.Unit,
             ExpiryDate = request.ExpiryDate,
+            Category = request.Category,
+            Location = request.Location,
+            PurchasedDate = request.PurchasedDate,
+            OpenedDate = request.OpenedDate,
+            Notes = request.Notes,
             UserId = userId,
             Username = username
         };
@@ -56,7 +66,12 @@ public static class InventoryItemMapper
             Name = item.Name,
             Quantity = item.Quantity,
             Unit = item.Unit,
-            ExpiryDate = item.ExpiryDate
+            ExpiryDate = item.ExpiryDate,
+            Category = item.Category,
+            Location = item.Location,
+            PurchasedDate = item.PurchasedDate,
+            OpenedDate = item.OpenedDate,
+            Notes = item.Notes
         };
     }
 }

@@ -21,6 +21,18 @@ public record InventoryItem(string id) : CollectionBase(id)
     
     [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
     public DateTime? ExpiryDate { get; set; }
+
+    public string? Category { get; set; }
+
+    public string? Location { get; set; }
+
+    [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
+    public DateTime? PurchasedDate { get; set; }
+
+    [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
+    public DateTime? OpenedDate { get; set; }
+
+    public string? Notes { get; set; }
     
     [BsonRepresentation(BsonType.ObjectId)]
     public required string UserId { get; set; }

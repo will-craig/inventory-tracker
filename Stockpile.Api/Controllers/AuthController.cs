@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Stockpile.Api.Contracts.Requests;
+using Stockpile.Api.Contracts.Response;
 using Stockpile.Api.Services;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -12,15 +13,15 @@ public class AuthController(ITokenService tokenService, IUserProfileService user
     [HttpPost("login")]
     [SwaggerOperation(OperationId ="Login")]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Login([FromBody] LoginRequest? user)
     {
         if (user == null || string.IsNullOrEmpty(user.Username) || string.IsNullOrEmpty(user.Password))
-            return BadRequest("Invalid user credentials.");
+            return BadRequest(ApiProblemDetails.BadRequest("Invalid user credentials."));
         
         if (user.Password != "password") 
-            return Unauthorized();
+            return Unauthorized(ApiProblemDetails.Unauthorized("Invalid username or password."));
         
         var userProfile = await userProfileService.GetUserProfile(user.Username);
         var token = tokenService.GenerateToken(userProfile);

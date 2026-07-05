@@ -46,6 +46,6 @@ public class AuthControllerTests
         var controller = new AuthController(Mock.Of<ITokenService>(), Mock.Of<IUserProfileService>());
         var request = new LoginRequest { Username = "wrong", Password = "wrong" };
         var result = await controller.Login(request);
-        result.Should().BeOfType<UnauthorizedResult>();
+        result.Should().BeOfType<UnauthorizedObjectResult>();
     }
 }

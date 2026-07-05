@@ -18,10 +18,17 @@ public class CurrentUserService(IHttpContextAccessor context) : ICurrentUserServ
         get
         {
             var roleClaim = context.HttpContext?.User.Claims.FirstOrDefault(e => e.Type == ClaimTypes.Role);
-            return roleClaim?.Value != null ? (UserRole)Enum.Parse(typeof(UserRole), roleClaim.Value) : null;
+            return roleClaim?.Value != null && Enum.TryParse<UserRole>(roleClaim.Value, out var role)
+                ? role
+                : null;
         }
     }
+
     public string? Username => context.HttpContext?.User.Identity?.Name;
-    public string? UserId => context.HttpContext?.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-    public string? Email => context.HttpContext?.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+
+    public string? UserId => context.HttpContext?.User.Claims
+        .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+    public string? Email => context.HttpContext?.User.Claims
+        .FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
 }

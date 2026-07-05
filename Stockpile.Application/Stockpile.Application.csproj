@@ -7,14 +7,26 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Abstractions\" />
-      <Folder Include="Commands\" />
-      <Folder Include="Queries\" />
+      <ProjectReference Include="..\Stockpile.DAL\Stockpile.DAL.csproj" />
+      <ProjectReference Include="..\Stockpile.Domain\Stockpile.Domain.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Stockpile.DAL\Stockpile.DAL.csproj" />
-      <ProjectReference Include="..\Stockpile.Domain\Stockpile.Domain.csproj" />
+      <Compile Remove="Abstractions\**" />
+      <Compile Remove="Commands\**" />
+      <Compile Remove="Queries\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Remove="Abstractions\**" />
+      <EmbeddedResource Remove="Commands\**" />
+      <EmbeddedResource Remove="Queries\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Abstractions\**" />
+      <None Remove="Commands\**" />
+      <None Remove="Queries\**" />
     </ItemGroup>
 
 </Project>

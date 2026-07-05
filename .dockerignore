@@ -1,0 +1,13 @@
+**/.DS_Store
+**/.git
+**/.vs
+**/.vscode
+**/bin
+**/obj
+**/node_modules
+**/.expo
+**/coverage
+**/dist
+**/build
+smart-track-app/android
+smart-track-app/ios

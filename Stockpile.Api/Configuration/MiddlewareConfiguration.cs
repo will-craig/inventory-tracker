@@ -10,18 +10,18 @@ public static class MiddlewareConfiguration
         {
             app.UseSwagger();
             app.UseSwaggerUI();
-            app.UseCors("AllowAny");
+            app.UseCors("AllowDevelopment");
         }
         else
         {
             app.UseHsts();
             app.UseHttpsRedirection();
-            app.UseCors("AllowAny");  //TODO: setup production CORS policy later
+            app.UseCors("AllowConfiguredOrigins");
         }
         app.UseHttpsRedirection();
-        app.MapControllers();
         app.UseAuthentication();
         app.UseAuthorization();
+        app.MapControllers();
         return app;
     }
 }
