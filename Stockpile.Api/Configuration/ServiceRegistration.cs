@@ -131,7 +131,7 @@ public static class ServiceRegistration
         services.AddScoped<IInventoryService, InventoryService>();
         services.AddScoped<IUserProfileService, UserProfileService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
-        services.AddScoped<IDatabaseInitializer, DatabaseInitializer>();
+        services.AddSingleton<IDatabaseInitializer, DatabaseInitializer>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IInventoryItemRepository, InventoryItemRepository>();
         services.AddScoped<IUserProfileRepository, UserProfileRepository>();

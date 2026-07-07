@@ -36,8 +36,6 @@
 
   mongo-express:
     image: mongo-express:latest
-    profiles:
-      - tools
     restart: always
     ports:
       - "8081:8081"

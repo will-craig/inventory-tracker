@@ -22,14 +22,11 @@ public class AgentLocalRuntimeConfigurationTests
     }
 
     [Fact]
-    public void AgentLocalSettings_EnableSwaggerJsonButDisableUiAndBlockingStartupWork()
+    public void AgentLocalSettings_DisableAzureAdAndBlockingStartupWork()
     {
         using var document = JsonDocument.Parse(File.ReadAllText(ProjectFile("Stockpile.Api/appsettings.AgentLocal.json")));
 
-        var swagger = document.RootElement.GetProperty("Swagger");
-        swagger.GetProperty("Enabled").GetBoolean().Should().BeFalse();
-        swagger.GetProperty("JsonEnabled").GetBoolean().Should().BeTrue();
-        swagger.GetProperty("UiEnabled").GetBoolean().Should().BeFalse();
+        document.RootElement.TryGetProperty("Swagger", out _).Should().BeFalse();
 
         document.RootElement
             .GetProperty("AzureAd")
@@ -47,7 +44,7 @@ public class AgentLocalRuntimeConfigurationTests
     }
 
     [Fact]
-    public void Compose_KeepsApiAndToolsOutOfDefaultAgentRuntime()
+    public void Compose_IncludesMongoExpressInDefaultAgentRuntime()
     {
         var compose = File.ReadAllText(ProjectFile("compose.yaml"));
 
@@ -55,7 +52,8 @@ public class AgentLocalRuntimeConfigurationTests
         compose.Should().Contain("profiles:");
         compose.Should().Contain("- api");
         compose.Should().Contain("restart: unless-stopped");
-        compose.Should().Contain("- tools");
+        compose.Should().Contain("mongo-express:");
+        compose.Should().NotContain("- tools");
     }
 
     private static string ProjectFile(string relativePath)
