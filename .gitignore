@@ -71,6 +71,7 @@ ios/
 # IDEs / Editors
 riderModule.iml
 /_ReSharper.Caches/
+*.DotSettings.user
 .vscode/
 .idea/
 *.suo

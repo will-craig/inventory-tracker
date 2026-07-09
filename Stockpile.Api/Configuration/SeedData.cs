@@ -37,16 +37,10 @@ public static class SeedData
         var collection = db.GetCollection<UserProfile>(nameof(UserProfile));
         var user = collection.Find(e => e.Username == userProfile.Username).FirstOrDefault();
         if (user != null) 
-            return null;
-        
-        var newUser = new UserProfile
-        {
-            Username = userProfile.Username,
-            Email = userProfile.Email,
-            Preferences = userProfile.Preferences
-        };
+            return user;
+
         collection.InsertOne(userProfile);
-        return newUser;
+        return userProfile;
     }
     
     private static void SeedInventoryItems(IMongoDatabase db, List<InventoryItem> groupInventoryItems, UserProfile testUser)

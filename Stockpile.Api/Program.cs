@@ -3,8 +3,9 @@ using Stockpile.Api.Services;
 
 var initializeDatabaseOnly = args.Contains("--initialize-database", StringComparer.OrdinalIgnoreCase);
 
-var app = WebApplication
-    .CreateBuilder(args)
+var builder = WebApplication.CreateBuilder(args);
+
+var app = builder
     .RegisterServices()
     .Build()
     .ConfigureMiddleware();

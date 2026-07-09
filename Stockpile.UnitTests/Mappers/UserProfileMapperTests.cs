@@ -14,6 +14,7 @@ public class UserProfileMapperTests
     {
         var request = new UserProfileRequest
         {
+            Id = "12345",
             Username = "DemoUser",
             Email = "demo@example.com",
             Preferences = new UserPreferences { DefaultUnits = Unit.Litre, NotificationsEnabled = true }

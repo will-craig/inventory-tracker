@@ -38,7 +38,7 @@ public class StockControllerTests
     {
         var inventoryServiceMock = new Mock<IInventoryService>();
         var currentUserServiceMock = new Mock<ICurrentUserService>();
-        currentUserServiceMock.Setup(x => x.Username).Returns((string)null); // Set username to null
+        currentUserServiceMock.Setup(x => x.Username).Returns((string?)null); // Set username to null
         var controller = new StockController(inventoryServiceMock.Object, currentUserServiceMock.Object);
         var result = await controller.GetStock();
         result.Result.Should().BeOfType<UnauthorizedObjectResult>();

@@ -17,6 +17,10 @@ public static class ServiceRegistration
     {
         var services = builder.Services;
         var configuration = builder.Configuration;
+        
+        if (builder.Environment.EnvironmentName.Equals("AgentLocal", StringComparison.OrdinalIgnoreCase))
+            configuration.AddUserSecrets<Program>(optional: true);
+        
         services.Configure<DatabaseConfig>(configuration.GetSection("DatabaseConfig"));
         services.Configure<DatabaseInitializationConfig>(configuration.GetSection(DatabaseInitializationConfig.SectionName));
         services.Configure<InventoryAgentConfig>(configuration.GetSection(InventoryAgentConfig.SectionName));
