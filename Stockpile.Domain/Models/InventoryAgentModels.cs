@@ -27,4 +27,20 @@ public record InventoryAgentDigest(
     IReadOnlyList<int> WindowsDays,
     IReadOnlyList<InventoryItem> Expired,
     IReadOnlyDictionary<int, IReadOnlyList<InventoryItem>> DueWithinWindows,
-    IReadOnlyList<InventoryItem> NoExpiry);
+    IReadOnlyList<InventoryItem> NoExpiry)
+{
+    public InventoryDigestCounts Counts { get; init; } = new(0, new Dictionary<int, int>(), 0, 0);
+    public IReadOnlyList<InventoryAgentHint> Hints { get; init; } = [];
+}
+
+public record InventoryDigestCounts(
+    int Expired,
+    IReadOnlyDictionary<int, int> DueWithinDays,
+    int NoExpiry,
+    int TotalActionable);
+
+public record InventoryAgentHint(
+    string Type,
+    string Priority,
+    string Message,
+    IReadOnlyList<string> ItemIds);

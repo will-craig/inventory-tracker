@@ -307,7 +307,27 @@ public class AgentInventoryControllerTests
                     [5] = [],
                     [10] = []
                 },
-                []));
+                [])
+            {
+                Counts = new InventoryDigestCounts(
+                    1,
+                    new Dictionary<int, int>
+                    {
+                        [2] = 1,
+                        [5] = 0,
+                        [10] = 0
+                    },
+                    0,
+                    2),
+                Hints =
+                [
+                    new InventoryAgentHint(
+                        "expired-items",
+                        "high",
+                        "1 item(s) are already expired. The agent should ask the user to inspect before using.",
+                        ["expired-id"])
+                ]
+            });
 
         var result = await controller.GetDigest(new() { AsOf = asOf, LimitPerSection = 5 });
 

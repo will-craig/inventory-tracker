@@ -96,7 +96,16 @@ public class InventoryService(IInventoryItemRepository inventoryRepo) : IInvento
             .Take(limit)
             .ToList();
 
-        return new InventoryAgentDigest(asOf, windows, expired, dueWithinWindows, noExpiry);
+        var digest = new InventoryAgentDigest(asOf, windows, expired, dueWithinWindows, noExpiry);
+        return digest with
+        {
+            Counts = new InventoryDigestCounts(
+                expired.Count,
+                dueWithinWindows.ToDictionary(pair => pair.Key, pair => pair.Value.Count),
+                noExpiry.Count,
+                expired.Count + dueWithinWindows.Values.Sum(items => items.Count)),
+            Hints = InventoryAgentHintBuilder.Build(digest)
+        };
     }
 
     public async Task AddInventoryItemAsync(InventoryItem item)

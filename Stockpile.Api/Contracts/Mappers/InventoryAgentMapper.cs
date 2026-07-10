@@ -39,20 +39,13 @@ public static class InventoryAgentMapper
         {
             AsOf = digest.AsOf.Date,
             WindowsDays = digest.WindowsDays.ToList(),
+            Counts = MapCountsResponse(digest.Counts),
             Expired = digest.Expired.Select(item => MapItemResponse(item, digest.AsOf)).ToList(),
             DueWithinDays = dueWithinDays,
-            NoExpiry = digest.NoExpiry.Select(item => MapItemResponse(item, digest.AsOf)).ToList()
+            NoExpiry = digest.NoExpiry.Select(item => MapItemResponse(item, digest.AsOf)).ToList(),
+            Hints = digest.Hints.Select(MapHintResponse).ToList()
         };
 
-        response.Counts = new InventoryDigestCountsResponse
-        {
-            Expired = response.Expired.Count,
-            DueWithinDays = dueWithinDays.ToDictionary(pair => pair.Key, pair => pair.Value.Count),
-            NoExpiry = response.NoExpiry.Count,
-            TotalActionable = response.Expired.Count + dueWithinDays.Values.Sum(items => items.Count)
-        };
-
-        response.Hints = BuildHints(response);
         return response;
     }
 
@@ -177,55 +170,25 @@ public static class InventoryAgentMapper
             : InventoryItemUrgency.Later;
     }
 
-    private static List<InventoryAgentHintResponse> BuildHints(InventoryDigestResponse digest)
+    private static InventoryDigestCountsResponse MapCountsResponse(InventoryDigestCounts counts)
     {
-        var hints = new List<InventoryAgentHintResponse>();
-        if (digest.Expired.Count > 0)
+        return new InventoryDigestCountsResponse
         {
-            hints.Add(new InventoryAgentHintResponse
-            {
-                Type = "expired-items",
-                Priority = "high",
-                Message = $"{digest.Expired.Count} item(s) are already expired. The agent should ask the user to inspect before using.",
-                ItemIds = digest.Expired.Select(item => item.Id).ToList()
-            });
-        }
+            Expired = counts.Expired,
+            DueWithinDays = counts.DueWithinDays.ToDictionary(pair => pair.Key.ToString(), pair => pair.Value),
+            NoExpiry = counts.NoExpiry,
+            TotalActionable = counts.TotalActionable
+        };
+    }
 
-        var dueSoon = digest.DueWithinDays.Values.SelectMany(items => items).ToList();
-        if (dueSoon.Count > 0)
+    private static InventoryAgentHintResponse MapHintResponse(InventoryAgentHint hint)
+    {
+        return new InventoryAgentHintResponse
         {
-            hints.Add(new InventoryAgentHintResponse
-            {
-                Type = "use-first",
-                Priority = digest.Expired.Count > 0 ? "medium" : "high",
-                Message = $"{dueSoon.Count} item(s) should be prioritized before later inventory.",
-                ItemIds = dueSoon.Select(item => item.Id).ToList()
-            });
-        }
-
-        var lowQuantity = dueSoon.Where(item => item.Quantity <= 1).ToList();
-        if (lowQuantity.Count > 0)
-        {
-            hints.Add(new InventoryAgentHintResponse
-            {
-                Type = "check-quantity",
-                Priority = "medium",
-                Message = $"{lowQuantity.Count} urgent item(s) have quantity 1 or less; the agent should avoid assuming much is available.",
-                ItemIds = lowQuantity.Select(item => item.Id).ToList()
-            });
-        }
-
-        if (digest.NoExpiry.Count > 0)
-        {
-            hints.Add(new InventoryAgentHintResponse
-            {
-                Type = "missing-expiry",
-                Priority = "low",
-                Message = $"{digest.NoExpiry.Count} item(s) have no expiry date and may need user confirmation.",
-                ItemIds = digest.NoExpiry.Select(item => item.Id).ToList()
-            });
-        }
-
-        return hints;
+            Type = hint.Type,
+            Priority = hint.Priority,
+            Message = hint.Message,
+            ItemIds = hint.ItemIds.ToList()
+        };
     }
 }
