@@ -29,13 +29,6 @@ public class AgentLocalRuntimeConfigurationTests
         document.RootElement.TryGetProperty("Swagger", out _).Should().BeFalse();
 
         document.RootElement
-            .GetProperty("AzureAd")
-            .GetProperty("Enabled")
-            .GetBoolean()
-            .Should()
-            .BeFalse();
-
-        document.RootElement
             .GetProperty("DatabaseInitialization")
             .GetProperty("RunOnStartup")
             .GetBoolean()
@@ -44,7 +37,7 @@ public class AgentLocalRuntimeConfigurationTests
     }
 
     [Fact]
-    public void Compose_IncludesMongoExpressInDefaultAgentRuntime()
+    public void Compose_KeepsApiAndToolsOutOfDefaultAgentRuntime()
     {
         var compose = File.ReadAllText(ProjectFile("compose.yaml"));
 
@@ -52,8 +45,7 @@ public class AgentLocalRuntimeConfigurationTests
         compose.Should().Contain("profiles:");
         compose.Should().Contain("- api");
         compose.Should().Contain("restart: unless-stopped");
-        compose.Should().Contain("mongo-express:");
-        compose.Should().NotContain("- tools");
+        compose.Should().Contain("- tools");
     }
 
     private static string ProjectFile(string relativePath)

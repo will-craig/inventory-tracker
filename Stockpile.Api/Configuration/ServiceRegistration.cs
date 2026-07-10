@@ -39,28 +39,21 @@ public static class ServiceRegistration
             return client.GetDatabase(config.DatabaseName);
         });
 
-        services.AddControllers() 
-            .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter())); 
-        
+        services.AddControllers()
+            .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+
         services.AddEndpointsApiExplorer();
         services.AddHttpContextAccessor();
 
-        var azureAdEnabled = configuration.GetValue("AzureAd:Enabled", true);
-        if (azureAdEnabled)
-        {
-            // Use Microsoft Identity Web for Entra ID authentication
-            services.AddAuthentication("Bearer")
+        // Use Microsoft Identity Web for Entra ID authentication
+        services.AddAuthentication("Bearer")
                 .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
-            services.AddAuthentication()
+
+        services.AddAuthentication()
                 .AddScheme<AuthenticationSchemeOptions, InventoryAgentAuthenticationHandler>(
                     InventoryAgentConfig.AuthenticationScheme, _ => { });
-        }
-        else
-        {
-            services.AddAuthentication(InventoryAgentConfig.AuthenticationScheme)
-                .AddScheme<AuthenticationSchemeOptions, InventoryAgentAuthenticationHandler>(
-                    InventoryAgentConfig.AuthenticationScheme, _ => { });
-        }
+
+
 
         services.AddAuthorization(options =>
         {
@@ -70,36 +63,35 @@ public static class ServiceRegistration
                 policy.RequireAuthenticatedUser();
             });
         });
-        
+
         services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc("v1", new() { Title = "Fridge Tracker API", Version = "v1" });
             c.EnableAnnotations();
             c.DocumentFilter<InventoryAgentSecurityOperationFilter>();
+            c.SchemaFilter<InventoryAgentWriteExampleSchemaFilter>();
             var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
             var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
             if (File.Exists(xmlPath))
                 c.IncludeXmlComments(xmlPath);
 
-            if (azureAdEnabled)
+
+            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
-                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                In = ParameterLocation.Header,
+                Name = "Authorization",
+                Type = SecuritySchemeType.ApiKey,
+                Scheme = "Bearer",
+                BearerFormat = "JWT",
+                Description = "Please enter your token in the format: Bearer {your_token}"
+            });
+            c.AddSecurityRequirement(document => new OpenApiSecurityRequirement {
                 {
-                    In = ParameterLocation.Header,
-                    Name = "Authorization",
-                    Type = SecuritySchemeType.ApiKey,
-                    Scheme = "Bearer",
-                    BearerFormat = "JWT",
-                    Description = "Please enter your token in the format: Bearer {your_token}"
-                });
-                c.AddSecurityRequirement(document => new OpenApiSecurityRequirement
-                {
-                    {
-                        new OpenApiSecuritySchemeReference("Bearer", document, null),
-                        []
-                    }
-                });
-            }
+                    new OpenApiSecuritySchemeReference("Bearer", document),
+                    []
+                }
+            });
+
 
             c.AddSecurityDefinition(InventoryAgentConfig.AuthenticationScheme, new OpenApiSecurityScheme
             {

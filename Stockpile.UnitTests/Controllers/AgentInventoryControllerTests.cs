@@ -44,6 +44,248 @@ public class AgentInventoryControllerTests
         result.Result.Should().BeOfType<OkObjectResult>()
             .Which.Value.Should().BeOfType<InventoryAgentQueryResponse>()
             .Which.Items.Should().ContainSingle(item => item.Name == "Milk");
+        controller.Response.Headers["Accept-Query"].Should().Contain("application/json");
+    }
+
+    [Fact]
+    public async Task QueryInventoryWithBody_UsesSafeQueryRequestBody()
+    {
+        var controller = CreateController(out var inventoryServiceMock);
+        var expiresFrom = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc);
+        var expiresTo = new DateTime(2026, 7, 6, 0, 0, 0, DateTimeKind.Utc);
+        inventoryServiceMock.Setup(service => service.QueryInventoryForAgentAsync(It.Is<InventoryAgentQuery>(query =>
+                query.UserId == "user1" &&
+                query.Search == "milk" &&
+                query.Category == "Dairy" &&
+                query.Location == "Fridge" &&
+                query.ExpiresFrom == expiresFrom &&
+                query.ExpiresTo == expiresTo &&
+                query.IncludeNoExpiry &&
+                query.Sort == InventoryAgentSort.Name &&
+                query.Descending &&
+                query.Limit == 10)))
+            .ReturnsAsync([
+                NewItem("Milk", expiresTo)
+            ]);
+
+        var result = await controller.QueryInventoryWithBody(new()
+        {
+            Search = "milk",
+            Category = "Dairy",
+            Location = "Fridge",
+            ExpiresFrom = expiresFrom,
+            ExpiresTo = expiresTo,
+            IncludeNoExpiry = true,
+            Sort = InventoryAgentSort.Name,
+            Descending = true,
+            Limit = 10
+        });
+
+        result.Result.Should().BeOfType<OkObjectResult>()
+            .Which.Value.Should().BeOfType<InventoryAgentQueryResponse>()
+            .Which.Items.Should().ContainSingle(item => item.Name == "Milk");
+        controller.Response.Headers["Accept-Query"].Should().Contain("application/json");
+    }
+
+    [Fact]
+    public async Task CreateItem_AddsItemForAgentUser()
+    {
+        var controller = CreateController(out var inventoryServiceMock);
+        InventoryItem? capturedItem = null;
+        inventoryServiceMock.Setup(service => service.AddInventoryItemAsync(It.IsAny<InventoryItem>()))
+            .Callback<InventoryItem>(item => capturedItem = item)
+            .Returns(Task.CompletedTask);
+
+        var result = await controller.CreateItem(new InventoryAgentCreateItemRequest
+        {
+            Name = "Greek yogurt",
+            Quantity = 2,
+            Unit = Unit.Part,
+            ExpiryDate = new DateTime(2026, 7, 12, 0, 0, 0, DateTimeKind.Utc),
+            Category = "Dairy",
+            Location = "Fridge"
+        });
+
+        result.Result.Should().BeOfType<CreatedResult>()
+            .Which.Value.Should().BeOfType<InventoryAgentItemResponse>()
+            .Which.Name.Should().Be("Greek yogurt");
+        capturedItem.Should().NotBeNull();
+        capturedItem!.UserId.Should().Be("user1");
+        capturedItem.Username.Should().Be("AgentUser");
+    }
+
+    [Fact]
+    public async Task CreateItem_ReturnsUnauthorized_WhenUsernameIsMissing()
+    {
+        var controller = CreateController(out _, username: null);
+
+        var result = await controller.CreateItem(new InventoryAgentCreateItemRequest
+        {
+            Name = "Milk",
+            Unit = Unit.Part
+        });
+
+        result.Result.Should().BeOfType<UnauthorizedObjectResult>();
+    }
+
+    [Fact]
+    public async Task UpdateItem_AppliesProvidedFieldsOnly()
+    {
+        var controller = CreateController(out var inventoryServiceMock);
+        var item = NewItem("Milk", new DateTime(2026, 7, 12, 0, 0, 0, DateTimeKind.Utc));
+        item.Category = "Dairy";
+        item.Location = "Fridge";
+        inventoryServiceMock.Setup(service => service.GetInventoryItemAsync(item.Id)).ReturnsAsync(item);
+        inventoryServiceMock.Setup(service => service.UpdateInventoryItemAsync(item)).Returns(Task.CompletedTask);
+
+        var result = await controller.UpdateItem(item.Id, new InventoryAgentUpdateItemRequest
+        {
+            Quantity = 0.5f,
+            Location = "Door shelf"
+        });
+
+        result.Result.Should().BeOfType<OkObjectResult>()
+            .Which.Value.Should().BeOfType<InventoryAgentItemResponse>()
+            .Which.Location.Should().Be("Door shelf");
+        item.Name.Should().Be("Milk");
+        item.Quantity.Should().Be(0.5f);
+        item.Category.Should().Be("Dairy");
+    }
+
+    [Fact]
+    public async Task UpdateItem_ClearsOptionalFields()
+    {
+        var controller = CreateController(out var inventoryServiceMock);
+        var item = NewItem("Milk", new DateTime(2026, 7, 12, 0, 0, 0, DateTimeKind.Utc));
+        item.Category = "Dairy";
+        item.Notes = "Opened";
+        inventoryServiceMock.Setup(service => service.GetInventoryItemAsync(item.Id)).ReturnsAsync(item);
+        inventoryServiceMock.Setup(service => service.UpdateInventoryItemAsync(item)).Returns(Task.CompletedTask);
+
+        var result = await controller.UpdateItem(item.Id, new InventoryAgentUpdateItemRequest
+        {
+            Clear = ["category", "notes", "expiryDate"]
+        });
+
+        result.Result.Should().BeOfType<OkObjectResult>();
+        item.Category.Should().BeNull();
+        item.Notes.Should().BeNull();
+        item.ExpiryDate.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task UpdateItem_ReturnsBadRequest_WhenNoChangesAreProvided()
+    {
+        var controller = CreateController(out var inventoryServiceMock);
+        var item = NewItem("Milk", null);
+        inventoryServiceMock.Setup(service => service.GetInventoryItemAsync(item.Id)).ReturnsAsync(item);
+
+        var result = await controller.UpdateItem(item.Id, new InventoryAgentUpdateItemRequest());
+
+        result.Result.Should().BeOfType<BadRequestObjectResult>();
+    }
+
+    [Fact]
+    public async Task UpdateItem_ReturnsBadRequest_WhenClearIsNullAndNoChangesAreProvided()
+    {
+        var controller = CreateController(out var inventoryServiceMock);
+        var item = NewItem("Milk", null);
+        inventoryServiceMock.Setup(service => service.GetInventoryItemAsync(item.Id)).ReturnsAsync(item);
+
+        var result = await controller.UpdateItem(item.Id, new InventoryAgentUpdateItemRequest { Clear = null });
+
+        result.Result.Should().BeOfType<BadRequestObjectResult>();
+    }
+
+    [Fact]
+    public async Task UpdateItem_ReturnsForbidden_WhenItemBelongsToAnotherUser()
+    {
+        var controller = CreateController(out var inventoryServiceMock);
+        var item = NewItem("Milk", null) with { UserId = "other-user" };
+        inventoryServiceMock.Setup(service => service.GetInventoryItemAsync(item.Id)).ReturnsAsync(item);
+
+        var result = await controller.UpdateItem(item.Id, new InventoryAgentUpdateItemRequest { Quantity = 1 });
+
+        result.Result.Should().BeOfType<ObjectResult>()
+            .Which.StatusCode.Should().Be(StatusCodes.Status403Forbidden);
+    }
+
+    [Fact]
+    public async Task UpdateItem_ReturnsNotFound_WhenItemDoesNotExist()
+    {
+        var controller = CreateController(out var inventoryServiceMock);
+        inventoryServiceMock.Setup(service => service.GetInventoryItemAsync("missing")).ReturnsAsync((InventoryItem?)null);
+
+        var result = await controller.UpdateItem("missing", new InventoryAgentUpdateItemRequest { Quantity = 1 });
+
+        result.Result.Should().BeOfType<NotFoundObjectResult>();
+    }
+
+    [Fact]
+    public async Task ConsumeItem_DecrementsQuantityAndAppendsNotes()
+    {
+        var controller = CreateController(out var inventoryServiceMock);
+        var item = NewItem("Milk", null);
+        item.Quantity = 2;
+        item.Notes = "Opened";
+        inventoryServiceMock.Setup(service => service.GetInventoryItemAsync(item.Id)).ReturnsAsync(item);
+        inventoryServiceMock.Setup(service => service.UpdateInventoryItemAsync(item)).Returns(Task.CompletedTask);
+
+        var result = await controller.ConsumeItem(item.Id, new ConsumeInventoryItemRequest
+        {
+            Quantity = 0.75f,
+            Notes = "Used for pasta"
+        });
+
+        result.Result.Should().BeOfType<OkObjectResult>()
+            .Which.Value.Should().BeOfType<InventoryAgentItemResponse>()
+            .Which.Quantity.Should().Be(1.25f);
+        item.Notes.Should().Be("Opened\nUsed for pasta");
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public async Task ConsumeItem_ReturnsBadRequest_WhenQuantityIsNotPositive(float quantity)
+    {
+        var controller = CreateController(out var inventoryServiceMock);
+        var item = NewItem("Milk", null);
+        inventoryServiceMock.Setup(service => service.GetInventoryItemAsync(item.Id)).ReturnsAsync(item);
+
+        var result = await controller.ConsumeItem(item.Id, new ConsumeInventoryItemRequest { Quantity = quantity });
+
+        result.Result.Should().BeOfType<BadRequestObjectResult>();
+    }
+
+    [Fact]
+    public async Task ConsumeItem_ReturnsBadRequest_WhenQuantityExceedsAvailable()
+    {
+        var controller = CreateController(out var inventoryServiceMock);
+        var item = NewItem("Milk", null);
+        item.Quantity = 1;
+        inventoryServiceMock.Setup(service => service.GetInventoryItemAsync(item.Id)).ReturnsAsync(item);
+
+        var result = await controller.ConsumeItem(item.Id, new ConsumeInventoryItemRequest { Quantity = 2 });
+
+        result.Result.Should().BeOfType<BadRequestObjectResult>();
+    }
+
+    [Fact]
+    public void QueryInventoryWithBody_IsRegisteredForQueryVerbAndHiddenFromOpenApi()
+    {
+        var method = typeof(AgentInventoryController).GetMethod(nameof(AgentInventoryController.QueryInventoryWithBody));
+
+        method.Should().NotBeNull();
+        var acceptVerbs = method!.GetCustomAttributes(typeof(AcceptVerbsAttribute), inherit: false)
+            .OfType<AcceptVerbsAttribute>()
+            .Single();
+        acceptVerbs.HttpMethods.Should().Equal("QUERY");
+        acceptVerbs.Route.Should().Be("query");
+
+        method.GetCustomAttributes(typeof(ApiExplorerSettingsAttribute), inherit: false)
+            .OfType<ApiExplorerSettingsAttribute>()
+            .Single()
+            .IgnoreApi.Should().BeTrue();
     }
 
     [Fact]
@@ -76,188 +318,28 @@ public class AgentInventoryControllerTests
         digest.Hints.Should().Contain(hint => hint.Type == "expired-items");
     }
 
-    [Fact]
-    public async Task AddInventory_CreatesBulkAdditionsForAgentUser()
-    {
-        var controller = CreateController(out var inventoryServiceMock);
-        inventoryServiceMock.Setup(service => service.AddInventoryForAgentAsync(
-                "user1",
-                "AgentUser",
-                It.Is<IReadOnlyList<InventoryAgentAddition>>(items =>
-                    items.Count == 2 &&
-                    items[0].Name == "Milk" &&
-                    items[1].Reason == "receipt-scan")))
-            .ReturnsAsync([
-                new InventoryAgentWriteResult("created", "item1", "Milk", null, NewItem("Milk", null)),
-                new InventoryAgentWriteResult("created", "item2", "Eggs", null, NewItem("Eggs", null))
-            ]);
-
-        var result = await controller.AddInventory(new InventoryAgentBulkAddRequest
-        {
-            Items =
-            [
-                new() { Name = "Milk", Quantity = 1, Unit = Unit.Litre },
-                new() { Name = "Eggs", Quantity = 12, Unit = Unit.Part, Reason = "receipt-scan" }
-            ]
-        });
-
-        var response = result.Result.Should().BeOfType<OkObjectResult>()
-            .Which.Value.Should().BeOfType<InventoryAgentBulkWriteResponse>().Subject;
-        response.Results.Should().HaveCount(2);
-        response.Results.Should().OnlyContain(item => item.Status == "created");
-    }
-
-    [Fact]
-    public async Task AddInventory_ReturnsUnauthorized_WhenUserContextIsMissing()
-    {
-        var controller = CreateController(out _, userId: null);
-
-        var result = await controller.AddInventory(new InventoryAgentBulkAddRequest());
-
-        result.Result.Should().BeOfType<UnauthorizedObjectResult>();
-    }
-
-    [Fact]
-    public async Task AddInventory_TreatsNullItemsListAsEmptyBatch()
-    {
-        var controller = CreateController(out var inventoryServiceMock);
-        inventoryServiceMock.Setup(service => service.AddInventoryForAgentAsync(
-                "user1",
-                "AgentUser",
-                It.Is<IReadOnlyList<InventoryAgentAddition>>(items => items.Count == 0)))
-            .ReturnsAsync([]);
-
-        var result = await controller.AddInventory(new InventoryAgentBulkAddRequest { Items = null! });
-
-        result.Result.Should().BeOfType<OkObjectResult>()
-            .Which.Value.Should().BeOfType<InventoryAgentBulkWriteResponse>()
-            .Which.Results.Should().BeEmpty();
-    }
-
-    [Fact]
-    public async Task UpdateInventory_AppliesSemanticUpdatesById()
-    {
-        var controller = CreateController(out var inventoryServiceMock);
-        inventoryServiceMock.Setup(service => service.UpdateInventoryForAgentAsync(
-                "user1",
-                It.Is<IReadOnlyList<InventoryAgentUpdate>>(items =>
-                    items.Count == 1 &&
-                    items[0].Id == "item1" &&
-                    items[0].Quantity == 2 &&
-                    items[0].Reason == "inventory-correction")))
-            .ReturnsAsync([
-                new InventoryAgentWriteResult("updated", "item1", "Milk", null, NewItem("Milk", null))
-            ]);
-
-        var result = await controller.UpdateInventory(new InventoryAgentBulkUpdateRequest
-        {
-            Items =
-            [
-                new() { Id = "item1", Quantity = 2, Reason = "inventory-correction" }
-            ]
-        });
-
-        result.Result.Should().BeOfType<OkObjectResult>()
-            .Which.Value.Should().BeOfType<InventoryAgentBulkWriteResponse>()
-            .Which.Results.Should().ContainSingle(item => item.Status == "updated" && item.Id == "item1");
-    }
-
-    [Fact]
-    public async Task UpdateInventory_MapsNullItemToFailedServiceValidation()
-    {
-        var controller = CreateController(out var inventoryServiceMock);
-        inventoryServiceMock.Setup(service => service.UpdateInventoryForAgentAsync(
-                "user1",
-                It.Is<IReadOnlyList<InventoryAgentUpdate>>(items => items.Count == 1 && items[0].Id == null)))
-            .ReturnsAsync([
-                new InventoryAgentWriteResult("failed", null, null, "Item id is required.")
-            ]);
-
-        var result = await controller.UpdateInventory(new InventoryAgentBulkUpdateRequest
-        {
-            Items = [null!]
-        });
-
-        result.Result.Should().BeOfType<OkObjectResult>()
-            .Which.Value.Should().BeOfType<InventoryAgentBulkWriteResponse>()
-            .Which.Results.Should().ContainSingle(item => item.Status == "failed");
-    }
-
-    [Fact]
-    public async Task ConsumeInventoryItem_ReturnsUpdatedItem_WhenPartiallyConsumed()
-    {
-        var controller = CreateController(out var inventoryServiceMock);
-        inventoryServiceMock.Setup(service => service.ConsumeInventoryForAgentAsync(It.Is<InventoryAgentConsumeCommand>(command =>
-                command.ItemId == "item1" &&
-                command.UserId == "user1" &&
-                command.Quantity == 0.5f &&
-                command.Reason == "used-in-meal")))
-            .ReturnsAsync(new InventoryAgentConsumeResult("updated", null, NewItem("Milk", null)));
-
-        var result = await controller.ConsumeInventoryItem("item1", new ConsumeInventoryItemRequest
-        {
-            Quantity = 0.5f,
-            Reason = "used-in-meal"
-        });
-
-        result.Result.Should().BeOfType<OkObjectResult>()
-            .Which.Value.Should().BeOfType<InventoryAgentItemResponse>()
-            .Which.Name.Should().Be("Milk");
-    }
-
-    [Fact]
-    public async Task ConsumeInventoryItem_ReturnsNoContent_WhenItemIsDepleted()
-    {
-        var controller = CreateController(out var inventoryServiceMock);
-        inventoryServiceMock.Setup(service => service.ConsumeInventoryForAgentAsync(It.IsAny<InventoryAgentConsumeCommand>()))
-            .ReturnsAsync(new InventoryAgentConsumeResult("deleted", null));
-
-        var result = await controller.ConsumeInventoryItem("item1", new ConsumeInventoryItemRequest { Quantity = 1 });
-
-        result.Result.Should().BeOfType<NoContentResult>();
-    }
-
-    [Fact]
-    public async Task ConsumeInventoryItem_ReturnsForbidden_WhenServiceReportsForeignItem()
-    {
-        var controller = CreateController(out var inventoryServiceMock);
-        inventoryServiceMock.Setup(service => service.ConsumeInventoryForAgentAsync(It.IsAny<InventoryAgentConsumeCommand>()))
-            .ReturnsAsync(new InventoryAgentConsumeResult("failed", "You do not have access to this item."));
-
-        var result = await controller.ConsumeInventoryItem("item1", new ConsumeInventoryItemRequest { Quantity = 1 });
-
-        result.Result.Should().BeOfType<ObjectResult>()
-            .Which.StatusCode.Should().Be(StatusCodes.Status403Forbidden);
-    }
-
-    [Fact]
-    public async Task DeleteInventoryItem_ReturnsNoContent_WhenDeleted()
-    {
-        var controller = CreateController(out var inventoryServiceMock);
-        inventoryServiceMock.Setup(service => service.DeleteInventoryForAgentAsync("item1", "user1"))
-            .ReturnsAsync(new InventoryAgentWriteResult("deleted", "item1", "Milk", null));
-
-        var result = await controller.DeleteInventoryItem("item1");
-
-        result.Should().BeOfType<NoContentResult>();
-    }
-
     private static AgentInventoryController CreateController(
         out Mock<IInventoryService> inventoryServiceMock,
-        string? userId = "user1")
+        string? userId = "user1",
+        string? username = "AgentUser")
     {
         inventoryServiceMock = new Mock<IInventoryService>();
         var currentUserServiceMock = new Mock<ICurrentUserService>();
         currentUserServiceMock.Setup(service => service.UserId).Returns(userId);
-        currentUserServiceMock.Setup(service => service.Username).Returns("AgentUser");
+        currentUserServiceMock.Setup(service => service.Username).Returns(username);
 
-        return new AgentInventoryController(
+        var controller = new AgentInventoryController(
             inventoryServiceMock.Object,
             currentUserServiceMock.Object,
             Options.Create(new InventoryDigestConfig
             {
                 DefaultExpiryWindowsDays = [2, 5, 10]
             }));
+        controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext()
+        };
+        return controller;
     }
 
     private static InventoryItem NewItem(string name, DateTime? expiryDate)
